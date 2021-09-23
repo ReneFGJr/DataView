@@ -8,9 +8,8 @@ class Dataview extends BaseController
 {
     public function index()
     {
-        echo '<pre>';
-        print_r($_POST);
-        echo '<hr>';
-        print_r($_GET);
+        $DataViewer = new \App\Models\DataViewer();
+        $tela = $DataViewer->index();
+        return $tela;
     }
 }
