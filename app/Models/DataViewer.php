@@ -42,7 +42,7 @@ class DataViewer extends Model
 
     function logo()
         {
-            $tela = '<div style="position: fixed; right:0px; text-align: right;"><img src="img/logo_cedapdados.png" align="right" width="20px"></div>';
+            $tela = '<div style="position: fixed; right:0px; text-align: right;"><img src="dataview/img/logo_cedapdados.png" align="right" width="20px"></div>';
             return $tela;
         }
 
