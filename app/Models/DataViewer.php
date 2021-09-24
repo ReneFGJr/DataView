@@ -109,7 +109,7 @@ class DataViewer extends Model
             $cnt = '<div data-spy="scroll" data-target="#navbar-example3" data-offset="0">'.$cnt.'</div>';
             $tela .= bsc($cnt,4);
             $tela .= '<style> body{ position: relative; /* required */ } .list-group{ position: sticky; top: 15px; } </style>';
-            $tela = bs($tela);
+            $tela = bs($tela, array('fluid'=>FALSE));
             return $tela;
         }
 
@@ -129,7 +129,7 @@ class DataViewer extends Model
         {
             ;
             $dataDscr = $xml->dataDscr->var;
-            $ss = '<select size=10 onchange="location.href=this.value;">';
+            $ss = '<select size=20 onchange="location.href=this.value;">';
             $sc = '';
             foreach($dataDscr as $id=>$var)
                 {
@@ -181,7 +181,7 @@ class DataViewer extends Model
                             '.bsc($sc,9).'
                         </div>
                         ';
-                $sx = bs($sx);
+                $sx = '<div class="container-fluid"><div class="row">'.$sx.'</div></div>';
             return $sx;
         }
 
