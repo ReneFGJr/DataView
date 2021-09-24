@@ -149,7 +149,8 @@ class DataViewer extends Model
                     $vara = (array)$var;
                     $attrib = $vara['@attributes'];
                     //$ss .= '<a class="list-group-item list-group-item" href="#'.$attrib['ID'].'" style="font-size: 70%; border: 0px; padding: 0px;">';
-                    $ss .= '<option value="'.base_url($_SERVER['URLSITE'].'#'.$attrib['ID']).'">';
+                    //$ss .= '<option value="'.base_url($_SERVER['URLSITE'].'#'.$attrib['ID']).'">';
+                    $ss .= '<option value="#'.($attrib['ID']).'">';
                     $ss .= $attrib['name'];
                     $ss .= '</option>';
 
