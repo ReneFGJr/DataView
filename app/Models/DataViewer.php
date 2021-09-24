@@ -79,6 +79,10 @@ class DataViewer extends Model
                 {
                     $dv[$field] = $value;
                 }
+            foreach($_GET as $field => $value)
+                {
+                    $dv[$field] = $value;
+                }                
             if ($dv['fileid'] != '')
             {
             $act = '';
