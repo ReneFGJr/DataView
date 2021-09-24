@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use CodeIgniter\Model;
@@ -80,6 +79,8 @@ class DataViewer extends Model
                 {
                     $dv[$field] = $value;
                 }
+            if ($dv['fileid'] != '')
+            {
             $act = '';
             $tela .= $this->header($dv);
             $tela .= $this->logo();
@@ -88,11 +89,14 @@ class DataViewer extends Model
                     /********************************* Default */
                     default:
                     //return $this->metadata();
-                    $file = $this->download_file_metadata();
+                    $file = $this->download_file_metadata($dv);
                     $tela .= $this->show_variables_v2($file);
                     $tela .= $this->footer();
                     break;
                 }
+            } else {
+                $tela = lang("FileID not infomed");
+            }
             return $tela;
         }
 
@@ -280,10 +284,12 @@ class DataViewer extends Model
 
     function download_file($dv=array())
         {
+            /*
             $dv['key'] = '67f260be-822f-4da1-b96f-660ab22c3e1b';
             $dv['siteUrl'] = 'http://20.197.236.31';
             $dv['PID'] = 'doi:10.80102/INEP-POC/IVYFWN';
             $dv['fileid'] = '12';
+            */
 
             $API_TOKEN = $dv['key'];
             $SERVER_URL = $dv['siteUrl'];
@@ -306,13 +312,8 @@ class DataViewer extends Model
             $resp = curl_exec($process);            
         }
 
-    function download_file_metadata($dt=array())        
+    function download_file_metadata($dv=array())        
         {
-            $dv['key'] = '67f260be-822f-4da1-b96f-660ab22c3e1b';
-            $dv['siteUrl'] = 'http://20.197.236.31';
-            $dv['PID'] = 'doi:10.80102/INEP-POC/IVYFWN';
-            $dv['fileid'] = '12';
-
             $API_TOKEN = $dv['key'];
             $SERVER_URL = $dv['siteUrl'];
             $PERSISTENT_ID = $dv['PID'];
