@@ -96,6 +96,9 @@ class DataViewer extends Model
                 }
             } else {
                 $tela = lang("FileID not infomed");
+                echo '<pre>';
+                print_r($_POST);
+                echo '</pre>';
             }
             return $tela;
         }
