@@ -98,6 +98,8 @@ class DataViewer extends Model
                 $tela = lang("FileID not infomed");
                 echo '<pre>';
                 print_r($_POST);
+                echo '<hr>';
+                print_r($_GET);
                 echo '</pre>';
             }
             return $tela;
