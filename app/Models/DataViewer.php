@@ -6,6 +6,7 @@ use CodeIgniter\Model;
 
 class DataViewer extends Model
 {
+    var $version = '0.21.09.24';
     protected $DBGroup              = 'default';
     protected $table                = 'dataviewers';
     protected $primaryKey           = 'id';
@@ -40,9 +41,33 @@ class DataViewer extends Model
     protected $beforeDelete         = [];
     protected $afterDelete          = [];
 
+    function logo()
+        {
+            $tela = '<div style="position: fixed; right:0px; text-align: right;"><img src="img/logo_cedapdados.png" align="right" width="20px"></div>';
+            return $tela;
+        }
+
+    function header($dv)
+        {
+            $tela = '';
+            $tela .= '<title>DataView - '.$dv['PID'].' - Brapci</title>';
+            $tela .= '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">';
+            $tela .= '</head>';
+            return $tela;
+        }
+    
+    function footer()
+        {
+            $tela = '';
+            $tela .= '<hr>';
+            $tela .= lang('Data visualization').' - '.lang('version').' '.$this->version.' <a href="https://github.com/ReneFGJr/DataView">https://github.com/ReneFGJr/DataView</a>';
+            $tela .= '<br>'.lang('development by').' <a href="https://github.com/ReneFGJr">Rene Faustino Gabriel junior</a>';
+            return $tela;
+        }
+
     function index()
         {
-            $tela = 'x';
+            $tela = '';
             $dv = array();
             $dv['fileid'] = '';
             $dv['siteUrl'] = '';
@@ -56,132 +81,202 @@ class DataViewer extends Model
                     $dv[$field] = $value;
                 }
             $act = '';
+            $tela .= $this->header($dv);
+            $tela .= $this->logo();
             switch($act)
                 {
-
                     /********************************* Default */
                     default:
                     //return $this->metadata();
-                    $tela .= $this->download_file_metadata();
+                    $file = $this->download_file_metadata();
+                    $tela .= $this->show_variables_v2($file);
+                    $tela .= $this->footer();
                     break;
                 }
             return $tela;
         }
 
-    function show_variables($xml)
+    function header_study($xml)
         {
-            $var = $xml->dataDscr->var;
+            $title = $xml->stdyDscr->citation->titlStmt->titl;
+            $IDno = $xml->stdyDscr->citation->titlStmt->IDNo;
+            $cnt = small(lang('dataview.study.title'));
+            $cnt .= h($title,2);
+            $tela = bsc($cnt,8);
 
-            $sx = '<h1>Total de variáveis: '.count($var).'<h1>';
+            $cnt = small(lang('dataview.study.idno'));
+            $cnt .= h($IDno,4);
+            $cnt = '<div data-spy="scroll" data-target="#navbar-example3" data-offset="0">'.$cnt.'</div>';
+            $tela .= bsc($cnt,4);
+            $tela .= '<style> body{ position: relative; /* required */ } .list-group{ position: sticky; top: 15px; } </style>';
+            $tela = bs($tela);
+            return $tela;
+        }
 
-            for ($r=0;$r < count($var);$r++)
+    function notes($xml)
+        {
+            $tela = '';            
+            $xml = (array)$xml;
+            if (isset($xml['notes']))
                 {
-                    $x = (array)$var[$r];
-                    $xo = $var[$r];
-                    $op = $x['@attributes'];
-
-                    //$cat = (array)$x->catgry;       
-   
-                    $lc = (array)$x['location'];
-                    $ft = (array)$x['varFormat'];
-
-                    $label = (string)$x['labl'];
-                    
-                    if (isset($x['catgry']))
-                        {
-                            $catgrp = (array)$x['catgry'];
-                            $tot = 0;
-                            $cats = array();
-                            for ($t=0;$t < count($catgrp);$t++)
-                                {
-                                    if (isset($catgrp[$t]))
-                                    {
-                                        $c = (array)$catgrp[$t];
-                                        $vlr = $c['catStat'];                                    
-                                        $vr = $c['catValu'];
-                                        $cats[$vr] = array('label'=>$c['labl'],'freq'=>$vlr,'percent'=>0);
-                                        $tot = $tot + $vlr;
-                                    } else {
-                                        $c = (array)$catgrp;
-                                        $vlr = $c['catStat'];                                    
-                                        $vr = $c['catValu'];
-                                        $cats[$vr] = array('label'=>$c['labl'],'freq'=>$vlr,'percent'=>0);
-                                        $tot = $tot + $vlr;
-                                    }
-                                }
-                            $st = '<table class="tablex" style="width: 100%; border: 1px solid #000000;">';
-                            foreach($cats as $ct => $dc)                            
-                            {
-                                $st .= '<tr>';
-                                $st .= '<td class="p-1">'.$dc['label'].'</td>';
-                                $st .= '<td class="p-1" style="text-align: right;">'.number_format($dc['freq'],0,',','.').'</td>';
-                                if ($tot > 0)
-                                {
-                                    $st .= '<td class="p-1" style="text-align: right;">'.number_format($dc['freq']/$tot*100,1,',','.').'%</td>';
-                                } else {
-                                    $st .= '<td></td>';
-                                }
-                                $st .= '</tr>';
-                            }
-                            $st .= '</table>';                                                        
-                        } else {
-                            $st = '';
-                        }
-                    
-                    $notes = (array)$x['notes'];
-                    $fileid = (string)$lc['@attributes']['fileid'];
-
-                    /*********************************************** */
-                    if (isset($var->catgry[0]))
-                        {
-                            $cat = (array)$var->catgry;
-                            print_r($cat);
-                        }
-                    
-                    $sx .= ('<h4>'.$label.'</h4>');
-                    $sx .= ($op['ID']);
-                    $sx .= ('<b>'.$op['name'].'</b>');
-                    $sx .= ($op['intrvl']);
-                    $sx .= ($fileid);
-                    $sx .= ('<small>Type</small>: '.$ft['@attributes']['type']);
-                    $sx .= ('x');
-                    $sx .= ('&nbsp;');
-                    $sx .= ($st);
-
-                    /************************************************************************** */
-                    $vls = array('max'=>0,'min'=>'','mean'=>''
-                                    ,'medn'=>'','mode'=>'','stdev'=>''
-                                    ,'invd'=>'','vald'=>'');
-
-                    if (isset($xo->sumStat[0]))
-                    {
-                        for ($t=0;$t < 8;$t++)
-                            {
-                                $sum = (array)$xo->sumStat[$t];                            
-                                $vlr = $sum[0];
-                                $ind = $sum['@attributes']['type'];
-                                $vls[$ind] = $vlr;
-                            }
-                       
-                            $sv = '<table>';
-                            $n = 0;
-                            foreach($vls as $vn => $vl)
-                                {
-									if (($vn == 'invd') or ($vn == 'vald')) { $vl = number_format($vl,0,',','.'); }
-									if (($vn == 'stdev') or ($vn == 'mean')) { $vl = number_format($vl,4,',','.'); }
-                                    $sv .= '<tr>';
-                                    $sv .= '<td style="text-align: right;" class="px-1">'.lang('dataverse.'.$vn).'</td>';
-                                    $sv .= '<td style="text-align: left;" class="px-1">'.$vl.'</td>';
-                                    $sv .= '</tr>';
-                                    $n++;
-                                }
-                            $sv .= '</table>';
-                            $sx .= $sv;
-                    }
-
+                    $tela = lang('dataview.notes');
+                    $tela .= ': '.(string)$xml['notes'];                    
                 }
+            return $tela;
+        }
+
+    function variables($xml)
+        {
+            ;
+            $dataDscr = $xml->dataDscr->var;
+            $ss = '<select size=10 onchange="location.href=this.value;">';
+            $sc = '';
+            foreach($dataDscr as $id=>$var)
+                {
+                    $vara = (array)$var;
+                    $attrib = $vara['@attributes'];
+                    //$ss .= '<a class="list-group-item list-group-item" href="#'.$attrib['ID'].'" style="font-size: 70%; border: 0px; padding: 0px;">';
+                    $ss .= '<option value="'.base_url($_SERVER['URLSITE'].'#'.$attrib['ID']).'">';
+                    $ss .= $attrib['name'];
+                    $ss .= '</option>';
+
+                    /************************************************************************** */     
+                    $sc .= '<hr>';               
+                    $sc .= '<div id="'.$attrib['ID'].'">';
+                    $sc .= h($var->labl . ' ('.$attrib['name'].')',4);
+
+                    if (isset($vara['catgry']))
+                        {
+                            $vcat = $vara['catgry'];
+                            $avcat = (array)$vara['catgry'];
+                            if (isset($avcat['catValu']))
+                                {
+                                        $vcat = array($avcat);
+                                } else {
+                                    $vcat = (array)$vcat;
+                                }
+                            $sc .= $this->variables_resume($vcat);
+                        }
+                    $sc .= '</div>';
+
+                $sc .= $this->notes($var);
+                $sc .= $this->summary($var);                    
+
+                /*
+                echo '<pre>';
+                print_r($var);
+                echo '</pre>';
+                echo '<hr>';
+                */
+                }
+
+
+
+                $ss .= '</select>';
+
+
+                $sx = '<div class="col-sm-3" id="myScrollspy">
+                            <div class="list-group">'.$ss.'</div>
+                            </div>
+                            '.bsc($sc,9).'
+                        </div>
+                        ';
+                $sx = bs($sx);
             return $sx;
         }
+
+    function summary($xml)
+        {
+            $sx = '';
+            $axml = (array)$xml;
+
+            if (!isset($axml['sumStat'])) { return ''; }
+
+            $vls = array('max'=>0,'min'=>'','mean'=>''
+                            ,'medn'=>'','mode'=>'','stdev'=>''
+                            ,'invd'=>'','vald'=>'');            
+
+
+
+            for ($t=0;$t < 8;$t++)
+                {
+                    $sum = (array)$xml->sumStat[$t];                            
+                    $vlr = $sum[0];
+                    $ind = $sum['@attributes']['type'];
+                    $vls[$ind] = $vlr;
+                }
+
+                $sv = '<table width="100%" class="small" border=1>';
+                $n = 0;
+                $sa = ''; 
+                $sb = '';
+                foreach($vls as $vn => $vl)
+                    {
+                        if (($vn == 'invd') or ($vn == 'vald')) { $vl = number_format($vl,0,',','.'); }
+                        if (($vn == 'stdev') or ($vn == 'mean')) { $vl = number_format($vl,4,',','.'); }
+
+                        $sa .= '<th style="text-align: center;" class="px-1" width="11%">'.lang('dataview.'.$vn).'</th>';
+                        $sb .= '<td style="text-align: center;" class="px-1">'.$vl.'</td>';
+                        $n++;
+                    }
+                $sv .= '<tr>'.$sa.'</tr>';
+                $sv .= '<tr>'.$sb.'</tr>';
+                $sv .= '</table>';
+            return $sv;
+        }
+
+    function variables_resume($cats)
+        {
+                $tot = 0;
+                $st = '<table class="tablex" style="width: 100%; border: 1px solid #000000;">';
+
+                /* Calcula frequencia total **************************************************/
+                for($r=0;$r < count($cats);$r++)                   
+                {
+                    $dc = (array)$cats[$r];
+                    $tot = $tot + (float)$dc['catStat'];
+                }
+
+                for($r=0;$r < count($cats);$r++)                        
+                {
+                    $dc = (array)$cats[$r];
+                    $vlr = (float)$dc['catStat'];
+                    $vlrCat = (string)$dc['catValu'];
+                    $label = (string)$dc['labl'];
+                    //print_r($dc);
+                    //echo '<hr>';
+                    $st .= '<tr>';
+                    $st .= '<td class="p-1">'.$label.' <sup>('.$vlrCat.')</sup></td>';
+                    $st .= '<td class="p-1" style="text-align: right;" width="10%">'.number_format($vlr,0,',','.').'</td>';
+                    if ($tot > 0)
+                    {
+                        $st .= '<td class="p-1" style="text-align: right;" width="10%">'.number_format(($vlr/$tot)*100,1,',','.').'%</td>';
+                    } else {
+                        $st .= '<td width="10%"></td>';
+                    }
+                    $st .= '</tr>';
+                }
+                $st .= '</table>';    
+                $st .= 'Total : '.number_format($tot,0,',','.');          
+                return $st;
+        }
+
+
+    function show_variables_v2($file)
+        {
+            $xml = simplexml_load_file($file);            
+            $var = $xml->dataDscr->var;
+            /* Study Header *************************************/
+            $sx = $this->header_study($xml);
+            $sx .= $this->variables($xml);     
+
+            /*
+            echo '<pre>';
+            print_r($xml);      
+            echo '</pre>';
+            */
+            return $sx;
+        }        
 
     function download_file($dv=array())
         {
@@ -224,11 +319,8 @@ class DataViewer extends Model
             $FILEID = $dv['fileid'];
 
             $url = "$SERVER_URL/api/access/datafile/$FILEID/metadata/ddi";
-            $file = $this->download($url);
-
-            $xml = simplexml_load_file($file);
-            $tela = $this->show_variables($xml);            
-            return $tela;
+            $file = $this->download($url);        
+            return $file;
         }
 
     function download($url)

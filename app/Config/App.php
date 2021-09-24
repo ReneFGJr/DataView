@@ -23,8 +23,7 @@ class App extends BaseConfig
      *
      * @var string
      */
-    public $baseURL = 'http://localhost:8080/';
-
+    public $baseURL = 'http://dataview/';
     /**
      * --------------------------------------------------------------------------
      * Index File
@@ -69,7 +68,8 @@ class App extends BaseConfig
      *
      * @var string
      */
-    public $defaultLocale = 'en';
+    #public $defaultLocale = 'en';
+    public $defaultLocale = 'pt-BR';
 
     /**
      * --------------------------------------------------------------------------
