@@ -42,7 +42,7 @@ class DataViewer extends Model
 
     function logo()
         {
-            $tela = '<div style="position: fixed; right:0px; text-align: right;"><img src="dataview/img/logo_cedapdados.png" align="right" width="20px"></div>';
+            $tela = '<div style="position: fixed; right:0px; text-align: right;"><img src="/dataview/img/logo_cedapdados.png" align="right" width="20px"></div>';
             return $tela;
         }
 
@@ -100,11 +100,6 @@ class DataViewer extends Model
                 }
             } else {
                 $tela = lang("FileID not infomed");
-                echo '<pre>';
-                print_r($_POST);
-                echo '<hr>';
-                print_r($_GET);
-                echo '</pre>';
             }
             return $tela;
         }
@@ -294,13 +289,6 @@ class DataViewer extends Model
 
     function download_file($dv=array())
         {
-            /*
-            $dv['key'] = '67f260be-822f-4da1-b96f-660ab22c3e1b';
-            $dv['siteUrl'] = 'http://20.197.236.31';
-            $dv['PID'] = 'doi:10.80102/INEP-POC/IVYFWN';
-            $dv['fileid'] = '12';
-            */
-
             $API_TOKEN = $dv['key'];
             $SERVER_URL = $dv['siteUrl'];
             $PERSISTENT_ID = $dv['PID'];
