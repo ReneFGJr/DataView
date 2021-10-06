@@ -17,6 +17,11 @@ class Dataview extends BaseController
         return $tela;
     }
 
+    function test($d1='',$d2='',$d3='')
+        {
+
+        } 
+
     function admin($d1='',$d2='',$d3='')
         {
             $DataViewerAdmin = new \App\Models\DataViewerAdmin();
