@@ -125,21 +125,16 @@ class DataViewer extends Model
         {
             $tela = '';            
             $xml = (array)$xml;
-            if (isset($xml['notes']))
+            print_r($xml['notes']);
+            $notas = $xml['notes'];
+            if (is_array(($notas)))
                 {
-                    $tela = lang('dataview.notes');
-                    $notas = (string)$xml['notes'];
-
-                    if (isset($notas[0]))
-                        {
-                            foreach($notas as $id=>$nota)
-                                {
-                                    echo '<br>===>'.(string)$nota;
-                                }
-                        } else {
-                            $tela .= ': '.$notas;    
-                        }
+                    echo "ARRAY###";
+                    $tela .= 'ARRAY';
+                } else {
+                    $tela .= 'Notas: '.(string)$notas;
                 }
+
             return $tela;
         }
 
