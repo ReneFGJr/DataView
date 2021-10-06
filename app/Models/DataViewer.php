@@ -125,23 +125,23 @@ class DataViewer extends Model
     function qstn($xml)
         {
             $tela = '';
-            $qstn = (array)$xml['qstn'];
-
-            echo '<pre>';
-            print_r($xml);
-            echo '</pre>';
-
-            foreach($qstn as $fld=>$value)
+            $xml = (array)$xml;
+            if (isset($xml['qstn']))
                 {
-                    $tela .= (string)$fld;
-                    $tela .= ': ';
-                    $tela .= (string)$value;
-                    $tela .= '<br>';
+                $qstn = (Array)$xml['qstn'];
+                foreach($qstn as $fld=>$value)
+                    {
+                        $tela .= (string)$fld;
+                        $tela .= ': ';
+                        $tela .= (string)$value;
+                        $tela .= '<br>';
+                    }
                 }
             if (isset($xml['universe']))
                 {
                     $tela .= 'Universo: '.(string)$xml['universe'].'<br>';
                 }
+                                
             return $tela;
         }
 
