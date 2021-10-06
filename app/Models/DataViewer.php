@@ -133,14 +133,14 @@ class DataViewer extends Model
                     echo '<hr>';
                     print_r($xml['notes']);
                     echo '<hr>';
-                    if (is_array($notas))
+                    if (isset($notas[0]))
                         {
-                            foreach($notas as $id=>$nota)
+                            for ($r=0;$r < count($notas);$r++)
                                 {
-                                    $tela .= '<div>Nota: '.(string)$nota.'</div>';
+                                    echo '<br>===>'.(string)$notas[$r];
                                 }
                         } else {
-                        $tela .= ': '.$notas;    
+                            $tela .= ': '.$notas;    
                         }
                 }
             return $tela;
