@@ -121,6 +121,25 @@ class DataViewer extends Model
             return $tela;
         }
 
+
+    function qstn($xml)
+        {
+            $tela = '';
+            $qstn = (array)$xml['qstn'];
+            foreach($qstn as $fld=>$value)
+                {
+                    $tela .= (string)$fld;
+                    $tela .= ': ';
+                    $tela .= (string)$value;
+                    $tela .= '<br>';
+                }
+            if (isset($xml['universe']))
+                {
+                    $tela .= 'Universo: '.(string)$xml['universe'].'<br>';
+                }
+            return $tela;
+        }
+
     function notes($xml)
         {
             $tela = '';            
@@ -177,6 +196,7 @@ class DataViewer extends Model
                     $sc .= '</div>';
 
                 $sc .= $this->notes($var);
+                $sx .= $this->qstn(($var);
                 $sc .= $this->summary($var);                    
 
                 /*
