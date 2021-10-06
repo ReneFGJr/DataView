@@ -126,6 +126,11 @@ class DataViewer extends Model
         {
             $tela = '';
             $qstn = (array)$xml['qstn'];
+
+            echo '<pre>';
+            print_r($xml);
+            echo '</pre>';
+
             foreach($qstn as $fld=>$value)
                 {
                     $tela .= (string)$fld;
@@ -199,12 +204,12 @@ class DataViewer extends Model
                 $sc .= $this->qstn($var);
                 $sc .= $this->summary($var);                    
 
-                
+                /*
                 echo '<pre>';
                 print_r($var);
                 echo '</pre>';
                 echo '<hr>';
-                
+                */
                 }
 
 
