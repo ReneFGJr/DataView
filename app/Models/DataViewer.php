@@ -150,15 +150,13 @@ class DataViewer extends Model
             $tela = '';            
             $xml = (array)$xml;
             $notas = $xml['notes'];
-            $id = 0;
             if (is_array(($notas)))
                 {
                     foreach($notas as $id=>$nt)
                         {
                             if (substr($nt,0,3) != 'UNF')
                             {
-                            $id++;
-                            $tela .= "Nota($id): ".$nt.'<br>';
+                            $tela .= "Nota: ".$nt.'<br>';
                             }
                         }
                 } else {
