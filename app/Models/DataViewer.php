@@ -196,7 +196,7 @@ class DataViewer extends Model
                     $sc .= '</div>';
 
                 $sc .= $this->notes($var);
-                $sx .= $this->qstn(($var);
+                $sc .= $this->qstn($var);
                 $sc .= $this->summary($var);                    
 
                 /*
