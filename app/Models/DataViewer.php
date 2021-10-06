@@ -5,7 +5,7 @@ use CodeIgniter\Model;
 
 class DataViewer extends Model
 {
-    var $version = '0.21.09.24';
+    var $version = '0.21.10.06';
     protected $DBGroup              = 'default';
     protected $table                = 'dataviewers';
     protected $primaryKey           = 'id';
@@ -131,15 +131,15 @@ class DataViewer extends Model
                 $qstn = (Array)$xml['qstn'];
                 foreach($qstn as $fld=>$value)
                     {
-                        $tela .= (string)$fld;
+                        $tela .= lang('dataview.'.(string)$fld);
                         $tela .= ': ';
-                        $tela .= (string)$value;
+                        $tela .= '<i>'.(string)$value.'</i>';
                         $tela .= '<br>';
                     }
                 }
             if (isset($xml['universe']))
                 {
-                    $tela .= 'Universo: '.(string)$xml['universe'].'<br>';
+                    $tela .= lang('dataview.Universe').': <i>'.(string)$xml['universe'].'</i><br>';
                 }
                                 
             return $tela;
