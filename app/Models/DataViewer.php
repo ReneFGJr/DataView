@@ -130,6 +130,9 @@ class DataViewer extends Model
                     $tela = lang('dataview.notes');
                     $notas = (string)$xml['notes'];
                     print_r($notas);
+                    echo '<hr>';
+                    print_r($xml['notes']);
+                    echo '<hr>';
                     if (is_array($notas))
                         {
                             foreach($notas as $id=>$nota)
