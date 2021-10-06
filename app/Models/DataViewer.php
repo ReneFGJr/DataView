@@ -137,7 +137,7 @@ class DataViewer extends Model
                         {
                             foreach($notas as $id=>$nota)
                                 {
-                                    $tela .= '<div>Nota: '.$nota.'</div>';
+                                    $tela .= '<div>Nota: '.(string)$nota.'</div>';
                                 }
                         } else {
                         $tela .= ': '.$notas;    
