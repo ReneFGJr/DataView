@@ -199,12 +199,12 @@ class DataViewer extends Model
                 $sc .= $this->qstn($var);
                 $sc .= $this->summary($var);                    
 
-                /*
+                
                 echo '<pre>';
                 print_r($var);
                 echo '</pre>';
                 echo '<hr>';
-                */
+                
                 }
 
 
