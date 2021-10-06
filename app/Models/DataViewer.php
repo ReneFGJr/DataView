@@ -155,11 +155,18 @@ class DataViewer extends Model
                 {
                     foreach($notas as $id=>$nt)
                         {
+                            if (substr($nt,0,3) != 'UNF')
+                            {
                             $id++;
                             $tela .= "Nota($id): ".$nt.'<br>';
+                            }
                         }
                 } else {
-                    $tela .= 'Notas: '.(string)$notas;
+                    $nt = (string)$notas;
+                    if (substr($nt,0,3) != 'UNF')
+                    {
+                        $tela .= 'Notas: '.$nt;
+                    }
                 }
 
             return $tela;
