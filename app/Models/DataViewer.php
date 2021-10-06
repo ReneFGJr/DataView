@@ -129,7 +129,6 @@ class DataViewer extends Model
             $id = 0;
             if (is_array(($notas)))
                 {
-                    $tela .= 'ARRAY';
                     foreach($notas as $id=>$nt)
                         {
                             $id++;
