@@ -330,7 +330,7 @@ class DataViewer extends Model
 
             /* Filne name */
             $file = '_temp/ddi/metadata_'.$file.'.xml';
-            if (!file_exists($file))
+            if ((!file_exists($file)) or (1==1))
                 {
                     $txt = file_get_contents($url);
                     file_put_contents($file,$txt);

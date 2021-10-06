@@ -16,4 +16,17 @@ class Dataview extends BaseController
         $tela = $DataViewer->index();
         return $tela;
     }
+
+    function admin($d1='',$d2='',$d3='')
+        {
+            $DataViewerAdmin = new \App\Models\DataViewerAdmin();
+            $tela = '';
+            $tela .= '<div class="container">';
+            $tela .= '<div class="row">';
+            $tela .= '<h1>ADMIN</h1>';
+            $tela .= '</div>';
+            $tela .= '</div>';
+            $tela .= $DataViewerAdmin->index($d1,$d2,$d3);
+            return $tela;
+        }
 }
