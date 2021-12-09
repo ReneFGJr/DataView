@@ -289,7 +289,11 @@ class DataViewer extends Model
                         if ($vn != 'NaN')
                         {
                             if (($vn == 'invd') or ($vn == 'vald')) { $vl = number_format($vl,0,',','.'); }
-                            if (($vn == 'stdev') or ($vn == 'mean')) { $vl = number_format($vl,4,',','.'); }
+                            if (($vn == 'stdev') or ($vn == 'mean')) 
+                                {
+                                    echo '<br>==>'.$vl;    
+                                    $vl = number_format($vl,4,',','.'); 
+                                }
                         } else {
                             $vl = 0;
                         }
