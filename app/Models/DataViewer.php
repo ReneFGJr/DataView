@@ -64,7 +64,7 @@ class DataViewer extends Model
             return $tela;
         }
 
-    function index($type='')
+    function index()
         {
             $tela = '';
             $dv = array();
@@ -85,7 +85,7 @@ class DataViewer extends Model
                 }                
             if ($dv['fileid'] != '')
             {
-            $act = $type;
+            $act = get("type");
             $tela .= $this->header($dv);
             $tela .= $this->logo();
             switch($act)

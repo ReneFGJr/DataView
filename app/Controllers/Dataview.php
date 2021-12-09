@@ -17,13 +17,6 @@ class Dataview extends BaseController
         return $tela;
     }
 
-    public function pdf()
-        {
-            $DataViewer = new \App\Models\DataViewer();
-            $tela = $DataViewer->index('pdf');
-            return $tela;    
-        }
-
     function test($d1='',$d2='',$d3='')
         {
 
