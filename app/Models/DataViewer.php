@@ -286,7 +286,7 @@ class DataViewer extends Model
                 $sb = '';
                 foreach($vls as $vn => $vl)
                     {
-                        if (trim($vn) != 'NaN')
+                        if (trim($vl) != 'NaN')
                         {
                             if (($vn == 'invd') or ($vn == 'vald')) { $vl = number_format($vl,0,',','.'); }
                             if (($vn == 'stdev') or ($vn == 'mean')) 
