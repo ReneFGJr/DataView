@@ -287,7 +287,7 @@ class DataViewer extends Model
                 foreach($vls as $vn => $vl)
                     {
                         if (($vn == 'invd') or ($vn == 'vald')) { $vl = number_format($vl,0,',','.'); }
-                        if (($vn == 'stdev') or ($vn == 'mean')) { $vl = number_format($vl,4,',','.'); }
+                        if (($vn == 'stdev') or ($vn == 'mean')) { echo '===>'.$vl; $vl = number_format($vl,4,',','.'); }
                         //;;if (($vn == 'stdev') or ($vn == 'mean')) { $vl = number_format($vl,4,',','.'); }
 
                         $sa .= '<th style="text-align: center;" class="px-1" width="11%">'.lang('dataview.'.$vn).'</th>';
