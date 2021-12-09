@@ -104,6 +104,8 @@ class DataViewer extends Model
                         $file = '.tmp/pdf/'.$file;
                         if (!file_exists(($file)))
                             {
+                                echo $url;
+                                exit;
                                 $txt = file_get_contents($url);
                                 file_put_contents($file,$txt);
                             }                      
