@@ -292,7 +292,6 @@ class DataViewer extends Model
                             if (($vn == 'invd') or ($vn == 'vald')) { $vl = number_format($vl,0,',','.'); }
                             if (($vn == 'stdev') or ($vn == 'mean')) 
                                 {
-                                    echo '<br>==>'.$vl.'=='.is_numeric($vl);    
                                     $vl = number_format($vl,4,',','.'); 
                                 }
                         } else {
