@@ -104,8 +104,18 @@ class DataViewer extends Model
                         $file = '.tmp/pdf/'.$file;
                         if (!file_exists(($file)))
                             {
-                                $txt = file_get_contents($url);
-                                file_put_contents($file,$txt);
+                                $ch = curl_init();
+                                curl_setopt($ch, CURLOPT_URL, $url);
+                                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+                                $st = curl_exec($ch);
+                                $fd = fopen($file, 'w');
+                                fwrite($fd, $st);
+                                fclose($fd);
+                                curl_close($ch);
+
+                                //$txt = file_get_contents($url);
+                                //file_put_contents($file,$txt);
                             }                      
 
                         header("Content-type:application/pdf");
