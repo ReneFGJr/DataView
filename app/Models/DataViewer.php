@@ -64,7 +64,7 @@ class DataViewer extends Model
             return $tela;
         }
 
-    function index()
+    function index($type='')
         {
             $tela = '';
             $dv = array();
@@ -85,11 +85,30 @@ class DataViewer extends Model
                 }                
             if ($dv['fileid'] != '')
             {
-            $act = '';
+            $act = $type;
             $tela .= $this->header($dv);
             $tela .= $this->logo();
             switch($act)
                 {
+                    case 'pdf':
+                        $filename = 'pdf.pdf';
+                        $url = $dv['siteUrl'];
+                        $url = $url.'/api/access/datafile/'.$dv['fileid'];
+                        $file = md5($url);
+                        if (!file_exists('.tmp/.')) { mkdir('.tmp'); }
+                        if (!file_exists('.tmp/pdf/.')) { mkdir('.tmp/pdf'); }
+                        $file = '.tmp/pdf/'.$file;
+                        if (!file_exists(($file)))
+                            {
+                                $txt = file_get_contents($url);
+                                file_put_contents($file,$txt);
+                            }                      
+
+                        header("Content-type:application/pdf");
+                        header("Content-Disposition:inline;filename='$filename");
+                        readfile($file);
+                        exit;
+                        break;
                     /********************************* Default */
                     default:
                     //return $this->metadata();
