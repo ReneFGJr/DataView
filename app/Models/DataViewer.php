@@ -68,6 +68,7 @@ class DataViewer extends Model
         {
             $tela = '';
             $dv = array();
+            $dv['type'] = '';
             $dv['fileid'] = '';
             $dv['siteUrl'] = '';
             $dv['PID'] = '';
@@ -87,9 +88,10 @@ class DataViewer extends Model
                 }                
             if ($dv['fileid'] != '')
             {
-            $act = get("type");
+            $act = $dv["type"];
             $tela .= $this->header($dv);
             $tela .= $this->logo();
+            //echo '===>'.$act;
             switch($act)
                 {
                     case 'pdf':
