@@ -97,7 +97,7 @@ class DataViewer extends Model
                     case 'pdf':
                         $filename = 'pdf.pdf';
                         $url = $dv['siteUrl'];
-                        $url = $url.'/api/access/datafile/'.$dv['fileid'];
+                        $url = $url.'api/access/datafile/'.$dv['fileid'];
                         $file = md5($url);
                         if (!file_exists('.tmp/.')) { mkdir('.tmp'); }
                         if (!file_exists('.tmp/pdf/.')) { mkdir('.tmp/pdf'); }
