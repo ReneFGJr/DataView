@@ -72,8 +72,10 @@ class PDF extends Model
             echo $file;
             if (file_exists($file)) {
                 $type = mime_content_type($file);
-                header("Content-type:'.$type.'");
-                header("Content-Disposition:inline;filename=$filename");            
+                header("Content-type:'.$type.'");                
+                header('Content-Disposition: inline; filename='.$filename);
+                header('Content-Transfer-Encoding: binary');
+                header('Accept-Ranges: bytes');                              
                 readfile($file);
             } else {
                 echo 'File not found - '.$file;
@@ -85,7 +87,11 @@ class PDF extends Model
 
     function view($d1='',$d2='',$d3='')
         {
-            $this->download();
+            $Files = new \App\Models\Preview\Files();
+            $files = $Files->download();
+            echo $files;
+            exit;
+            
             $sx = '';
             $sx .= '<div class="container">';
             $sx .= '<div class="row">';

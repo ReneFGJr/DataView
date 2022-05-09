@@ -22,6 +22,12 @@ class Dataview extends BaseController
         return $tela;
     }
 
+    function file($id='')
+        {
+            $FILE = new \App\Models\Preview\File();
+            $this->file($id);
+        }
+
     function pdf()
         {
             $PDF = new \App\Models\Preview\PDF();
