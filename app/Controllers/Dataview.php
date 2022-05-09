@@ -24,8 +24,8 @@ class Dataview extends BaseController
 
     function pdf()
         {
-            $DataViewer = new \App\Models\DataViewer();
-            $tela = $DataViewer->index();    
+            $PDF = new \App\Models\Preview\PDF();
+            $PDF->view();
             return "Erro open file";
         }
 

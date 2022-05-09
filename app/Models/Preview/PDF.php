@@ -44,7 +44,7 @@ class PDF extends Model
         {
             $DataViewer = new \App\Models\DataViewer();
             $dv = $DataViewer->getPOST();
-            $filename = 'pdf.pdf';
+            $filename = 'pdf_'.date("YmdHi").'.pdf';
             $url = $dv['siteUrl'];
             $url = $url . 'api/access/datafile/' . $dv['fileid'];
             $file = md5($url);
@@ -69,18 +69,23 @@ class PDF extends Model
                 //$txt = file_get_contents($url);
                 //file_put_contents($file,$txt);
             }
-
-            header("Content-type:application/pdf");
-            header("Content-Disposition:inline;filename='$filename");
-            readfile($file);
+            echo $file;
+            if (file_exists($file)) {
+                $type = mime_content_type($file);
+                header("Content-type:'.$type.'");
+                header("Content-Disposition:inline;filename=$filename");            
+                readfile($file);
+            } else {
+                echo 'File not found - '.$file;
+            }
             exit;
-            break;
             /********************************* Default */
 
         }
 
     function view($d1='',$d2='',$d3='')
         {
+            $this->download();
             $sx = '';
             $sx .= '<div class="container">';
             $sx .= '<div class="row">';
