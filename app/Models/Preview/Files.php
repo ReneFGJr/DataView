@@ -46,6 +46,9 @@ class Files extends Model
             $dv = $DataViewer->getPOST();
             $filename = 'pdf_'.date("YmdHi").'.pdf';
             $url = $dv['siteUrl'];
+            if (substr($url,strlen($url),1) != '/') {
+                $url = $url . '/';
+            }
             $url = $url . 'api/access/datafile/' . $dv['fileid'];
             $file = md5($url);
             if (!file_exists('.tmp/.')) {
@@ -59,7 +62,6 @@ class Files extends Model
             if (!file_exists(($file))) {
                 $ch = curl_init();
                 echo $url;
-                exit;
                 curl_setopt($ch, CURLOPT_URL, $url);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
