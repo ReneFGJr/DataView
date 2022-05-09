@@ -26,6 +26,7 @@ class Dataview extends BaseController
         {
             $DataViewer = new \App\Models\DataViewer();
             $tela = $DataViewer->index();    
+            return "Erro open file";
         }
 
     function help($d1='',$d2='',$d3='',$d4='')

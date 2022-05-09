@@ -155,7 +155,7 @@ class DataViewer extends Model
     function index()
     {
         $sx = '';
-
+        $dv = $this->getPOST();
         if ($dv['fileid'] != '') {
             $act = $dv["type"];
             $sx .= $this->header($dv);
