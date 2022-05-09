@@ -165,6 +165,7 @@ class DataViewer extends Model
                 case 'pdf':
                     $PDF = new \App\models\Preview\PDF();
                     $PDF->view();
+                    exit;
                     $filename = 'pdf.pdf';
                     $url = $dv['siteUrl'];
                     $url = $url . 'api/access/datafile/' . $dv['fileid'];
