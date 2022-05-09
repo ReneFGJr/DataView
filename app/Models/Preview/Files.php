@@ -58,6 +58,8 @@ class Files extends Model
 
             if (!file_exists(($file))) {
                 $ch = curl_init();
+                echo $url;
+                exit;
                 curl_setopt($ch, CURLOPT_URL, $url);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
