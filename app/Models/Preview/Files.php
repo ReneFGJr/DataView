@@ -51,7 +51,7 @@ class Files extends Model
             if (!file_exists('.tmp/.')) {
                 mkdir('.tmp');
             }
-            if (!file_exists('.tmp/.temp/.')) {
+            if (!file_exists('.tmp/.tmp/.')) {
                 mkdir('.tmp/.tmp');
             }
             $file = '.tmp/.tmp/' . $file;
