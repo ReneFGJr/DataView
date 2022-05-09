@@ -124,32 +124,37 @@ class DataViewer extends Model
         return $sx;
     }
 
+    function getPOST()
+        {
+            $dv = array();
+            $dv['type'] = '';
+            $dv['fileid'] = '';
+            $dv['siteUrl'] = '';
+            $dv['PID'] = '';
+            $dv['key'] = '';
+            $dv['datasetId'] = '';
+            $dv['localeCode'] = '';
+            $dv['preview'] = '';
+    
+            foreach ($_POST as $field => $value) {
+                if ($field == '?fileid') {
+                    $field = 'fileid';
+                }
+                $dv[$field] = $value;
+            }
+    
+            foreach ($_GET as $field => $value) {
+                if ($field == '?fileid') {
+                    $field = 'fileid';
+                }
+                $dv[$field] = $value;
+            }
+            return $dv;
+        }
+
     function index()
     {
         $sx = '';
-        $dv = array();
-        $dv['type'] = '';
-        $dv['fileid'] = '';
-        $dv['siteUrl'] = '';
-        $dv['PID'] = '';
-        $dv['key'] = '';
-        $dv['datasetId'] = '';
-        $dv['localeCode'] = '';
-        $dv['preview'] = '';
-
-        foreach ($_POST as $field => $value) {
-            if ($field == '?fileid') {
-                $field = 'fileid';
-            }
-            $dv[$field] = $value;
-        }
-
-        foreach ($_GET as $field => $value) {
-            if ($field == '?fileid') {
-                $field = 'fileid';
-            }
-            $dv[$field] = $value;
-        }
 
         if ($dv['fileid'] != '') {
             $act = $dv["type"];
@@ -158,6 +163,8 @@ class DataViewer extends Model
             
             switch ($act) {
                 case 'pdf':
+                    $PDF = new \App\models\Preview\PDF();
+                    $PDF->view();
                     $filename = 'pdf.pdf';
                     $url = $dv['siteUrl'];
                     $url = $url . 'api/access/datafile/' . $dv['fileid'];

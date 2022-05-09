@@ -40,7 +40,46 @@ class PDF extends Model
     protected $beforeDelete         = [];
     protected $afterDelete          = [];
 
-    function view($d1,$d2,$d3)
+    function download()
+        {
+            $DataViewer = new \App\Models\DataViewer();
+            $dv = $DataViewer->getPOST();
+            $filename = 'pdf.pdf';
+            $url = $dv['siteUrl'];
+            $url = $url . 'api/access/datafile/' . $dv['fileid'];
+            $file = md5($url);
+            if (!file_exists('.tmp/.')) {
+                mkdir('.tmp');
+            }
+            if (!file_exists('.tmp/pdf/.')) {
+                mkdir('.tmp/pdf');
+            }
+            $file = '.tmp/pdf/' . $file;
+            if (!file_exists(($file))) {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+                $st = curl_exec($ch);
+                $fd = fopen($file, 'w');
+                fwrite($fd, $st);
+                fclose($fd);
+                curl_close($ch);
+
+                //$txt = file_get_contents($url);
+                //file_put_contents($file,$txt);
+            }
+
+            header("Content-type:application/pdf");
+            header("Content-Disposition:inline;filename='$filename");
+            readfile($file);
+            exit;
+            break;
+            /********************************* Default */
+
+        }
+
+    function view($d1='',$d2='',$d3='')
         {
             $sx = '';
             $sx .= '<div class="container">';

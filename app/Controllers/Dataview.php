@@ -22,6 +22,12 @@ class Dataview extends BaseController
         return $tela;
     }
 
+    function pdf()
+        {
+            $DataViewer = new \App\Models\DataViewer();
+            $tela = $DataViewer->index();    
+        }
+
     function help($d1='',$d2='',$d3='',$d4='')
         {
             $sx = h('Help');
