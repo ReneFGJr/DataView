@@ -1,0 +1,34 @@
+  GNU nano 4.8                                                   pdf.json
+{
+    "displayName": "RDPBrasil PDFView - Dataverse",
+    "description": "Visualizado de PDF",
+    "toolName": "brapci_dataview",
+    "scope": "file",
+    "types": [
+        "preview","explore",
+    ],
+    "toolUrl": "/dataview/index.php/dataview/pdf",
+    "contentType": "application/pdf",
+    "toolParameters": {
+        "queryParameters": [
+            {
+                "fileid": "{fileId}"
+            },
+            {
+                "siteUrl": "{siteUrl}"
+            },
+            {
+                "PID": "{datasetPid}"
+            },
+            {
+                "key": "{apiToken}"
+            },
+            {
+                "datasetId": "{datasetId}"
+            },
+            {
+                "localeCode": "{localeCode}"
+            }
+        ]
+    }
+}
