@@ -89,8 +89,13 @@ class PDF extends Model
         {
             $Files = new \App\Models\Preview\Files();
             $files = $Files->download();
-            echo $files;
+            header('Content-type: application/pdf');
+            header('Content-Disposition: inline; filename="the.pdf"');
+            header('Content-Transfer-Encoding: binary');
+            header('Content-Length: ' . filesize($file));
+            @readfile($file);
 
+            exit;
             $sx = '';
             $sx .= '
             <!doctype html> 
