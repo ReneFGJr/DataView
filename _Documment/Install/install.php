@@ -10,12 +10,22 @@ if (isset($in[1]))
 
 switch ($cmd)
     {
+        case 'delete':
+            if (isset($in[2]))
+                {
+                    $cmd = 'curl -X DELETE http://localhost:8080/api/admin/externalTools/'.round($id);
+                    $rsp = shell_exec($cmd); 
+                    echo $rsp;       
+                } else {
+                    echo "Use: php install.php delete <ID>".cr();
+                    echo cr();
+                }
+            break;
         case 'list':
-            $cmd = 'curl http://localhost:8080/api/admin/externalTools | jq ';
+            $cmd = 'curl http://localhost:8080/api/admin/externalTools';
             $rsp = shell_exec($cmd);
             echo '======='.cr();
             $json = (array)json_decode($rsp);
-            print_r($json);
             if ((isset($json['status'])) and ($json['status'] == 'OK'))
                 {
                     $lst = (array)$json['data'];
@@ -25,6 +35,7 @@ switch ($cmd)
                             $line = (array)$lst[$r];
                             echo $line['id']."\t".$line['displayName'].cr();
                         }
+                    echo cr();
                 }
             break;
 
