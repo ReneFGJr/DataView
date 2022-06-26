@@ -76,6 +76,7 @@ class Dataview extends BaseController
 
                     default:
                         echo '<pre>';
+                        echo h($content);
                         print_r($_GET);
                     break;
                 }
