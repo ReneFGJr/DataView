@@ -49,7 +49,7 @@ class TAB extends Model
         $fileid = $_GET['fileid'];
 
         /**** */
-        $SERVER_URL = 'http://localhost:8080';
+        //$SERVER_URL = 'http://localhost:8080';
         echo $SERVER_URL.'<hr>';
 
         $file = $SERVER_URL . '/api/access/datafile/' . $fileid . '?key=' . $API_TOKEN;
@@ -103,13 +103,17 @@ class TAB extends Model
                     }
                 $sx .= '</tr>';
             }
-            $sx .= '</table>';
+            
             if ($limit < 0)
                 {
+                    $sx .= '<tr><td colspan='.count($header).'<b>continua ...</b></td></tr>';
+                    $sx .= '</table>';
                     $sx .= '
                     <div class="alert alert-danger" role="alert">
                     Esta vizualização apresenta uma amostra das primeiras 100 linhas
                     </div>';
+                } else {
+                    $sx .= '</table>';
                 }
             echo $sx;
         }
