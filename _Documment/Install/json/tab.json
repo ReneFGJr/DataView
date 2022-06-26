@@ -1,0 +1,32 @@
+"displayName": "Brapci DataView - TABULARES",
+"description": "Visualizado de dados Tabulares",
+"toolName": "brapci_dataview",
+"scope": "file",
+"types": [
+    "preview"
+],
+"toolUrl": "$HTTP/view/tab",
+"contentType": "text/tab-separated-values",
+"toolParameters": {
+    "queryParameters": [
+        {
+            "fileid": "{fileId}"
+        },
+        {
+            "siteUrl": "{siteUrl}"
+        },
+        {
+            "PID": "{datasetPid}"
+        },
+        {
+            "key": "{apiToken}"
+        },
+        {
+            "datasetId": "{datasetId}"
+        },
+        {
+            "localeCode": "{localeCode}"
+        }
+    ]
+}
+}

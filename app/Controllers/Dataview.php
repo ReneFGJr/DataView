@@ -66,9 +66,9 @@ class Dataview extends BaseController
                         break;
 
                     case 'pdf':
-                    $PDF = new \App\Models\Preview\PDF();
-                    $sx = $PDF->view($d1,$d2,$d3);
-                    break;
+                        $PDF = new \App\Models\Preview\PDF();
+                        $sx = $PDF->view($d1,$d2,$d3);
+                        break;
 
                     default:
                     break;
