@@ -7,7 +7,7 @@
         "preview"
     ],
     "toolUrl": "$HTTP/index.php/dataview/view/jpg",
-    "contentType": "text/tab-separated-values",
+    "contentType": "image/jpeg",
     "toolParameters": {
         "queryParameters": [
             {
