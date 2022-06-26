@@ -122,6 +122,8 @@ function help()
     {
         echo 'Funções:'.cr();
         echo '- register CONTENT_TYPE - Registra um visualizado para um tipo de arquivo (Content-type)';
+        echo '- list - Mostra os visualizadores ativos';
+        echo '- delete ID - Exclui um visualizador ativo';
         echo cr();
         echo cr();
     }

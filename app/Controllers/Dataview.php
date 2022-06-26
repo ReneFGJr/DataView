@@ -58,6 +58,10 @@ class Dataview extends BaseController
             $sx = '';
             switch($content)
                 {
+                    case 'tab':
+                        $DataViewer = new \App\Models\Preview\TAB();
+                        echo $DataViewer->index();
+                        break;
                     case 'form':
                         $DataViewer = new \App\Models\DataViewer();
                         $sx .= $this->cab();
@@ -71,6 +75,8 @@ class Dataview extends BaseController
                         break;
 
                     default:
+                        echo '<pre>';
+                        print_r($_GET);
                     break;
                 }
             return $sx;
