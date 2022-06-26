@@ -19,10 +19,11 @@ switch ($cmd)
             if ((isset($json['status'])) and ($json['status'] == 'OK'))
                 {
                     $lst = (array)$json['data'];
+                    echo "ID\tDISPLAY NAME".cr();
                     for ($r=0;$r < count($lst);$r++)
                         {
                             $line = (array)$lst[$r];
-                            echo $line['id'].' - '.$line['displayName'].cr();
+                            echo $line['id']."\t".$line['displayName'].cr();
                         }
                 }
             break;
