@@ -16,6 +16,15 @@ switch ($cmd)
             echo '======='.cr();
             $json = json_decode($rsp);
             print_r($json);
+            if ((isset($json['status'])) and ($json['status'] == 'OK'))
+                {
+                    $lst = (array)$json['data'];
+                    for ($r=0;$r < count($lst);$r++)
+                        {
+                            $line = (array)$lst[$r];
+                            echo $line['id'].' - '.$line['displayName'].cr();
+                        }
+                }
             break;
 
         case 'register':
