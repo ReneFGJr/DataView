@@ -13,6 +13,7 @@ switch ($cmd)
         case 'delete':
             if (isset($in[2]))
                 {
+                    $id = $in[2];
                     $cmd = 'curl -X DELETE http://localhost:8080/api/admin/externalTools/'.round($id);
                     $rsp = shell_exec($cmd); 
                     echo $rsp;       
