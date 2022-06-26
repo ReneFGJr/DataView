@@ -14,7 +14,7 @@ switch ($cmd)
             $cmd = 'curl http://localhost:8080/api/admin/externalTools | jq ';
             $rsp = shell_exec($cmd);
             echo '======='.cr();
-            $json = json_decode($rsp);
+            $json = (array)json_decode($rsp);
             print_r($json);
             if ((isset($json['status'])) and ($json['status'] == 'OK'))
                 {
