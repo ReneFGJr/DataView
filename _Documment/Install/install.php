@@ -27,7 +27,7 @@ switch ($cmd)
                             file_put_contents($filed,$txt);
                             $cmd = "curl -X POST -H 'Content-type: application/json' http://localhost:8080/api/admin/externalTools --upload-file ".$filed;
                             $rst = shell_exec($cmd);
-                            unlink($filed);
+                            //if (file_exists($filed)) { unlink($filed); }
                             echo $rst;
                         } else {
                             echo "\e[00;31m ERROR: configuration type '$type' not found \e[00;00m".cr();
