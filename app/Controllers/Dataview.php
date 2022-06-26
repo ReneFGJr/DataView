@@ -9,8 +9,8 @@ $this->session = \Config\Services::session();
 $language = \Config\Services::language();
 
 
-define("PATH",'http://dataview/public/index.php/');
-define("URL",'http://dataview/public/');
+define("PATH",getenv("app.baseURL").getenv("app.baseURLprefix"));
+define("URL",getenv("app.baseURL"));
 define("MODULE",'dataview');
 
 class Dataview extends BaseController
