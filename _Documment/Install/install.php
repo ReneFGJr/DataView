@@ -14,9 +14,10 @@ switch ($cmd)
             $cmd = 'curl http://localhost:8080/api/admin/externalTools | jq ';
             $rsp = shell_exec($cmd);
             echo '======='.cr();
-            echo $rsp;
+            $json = json_decode($rsp);
+            print_r($json);
             break;
-            
+
         case 'register':
             $url = variable_http();            
             if (isset($in[2]))
