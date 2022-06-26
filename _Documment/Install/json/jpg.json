@@ -1,0 +1,33 @@
+{
+    "displayName": "Brapci DataView - IMAGENS",
+    "description": "Visualizado de dados Tabulares",
+    "toolName": "brapci_dataview",
+    "scope": "file",
+    "types": [
+        "preview"
+    ],
+    "toolUrl": "$HTTP/index.php/dataview/view/jpg",
+    "contentType": "text/tab-separated-values",
+    "toolParameters": {
+        "queryParameters": [
+            {
+                "fileid": "{fileId}"
+            },
+            {
+                "siteUrl": "{siteUrl}"
+            },
+            {
+                "PID": "{datasetPid}"
+            },
+            {
+                "key": "{apiToken}"
+            },
+            {
+                "datasetId": "{datasetId}"
+            },
+            {
+                "localeCode": "{localeCode}"
+            }
+        ]
+    }
+}
