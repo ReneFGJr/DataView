@@ -48,6 +48,10 @@ class TAB extends Model
         $datasetId = $_GET['datasetId'];
         $fileid = $_GET['fileid'];
 
+        /**** */
+        $SERVER_URL = 'http://localhost:8080';
+        echo $SERVER_URL.'<hr>';
+
         $file = $SERVER_URL . '/api/access/datafile/' . $fileid . '?key=' . $API_TOKEN;
         $limit = 20;
         $ln = 0;
