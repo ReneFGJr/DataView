@@ -62,6 +62,10 @@ class Dataview extends BaseController
                         $DataViewer = new \App\Models\Preview\Image();
                         echo $DataViewer->index();
                         break;
+                    case 'png':
+                        $DataViewer = new \App\Models\Preview\Image();
+                        echo $DataViewer->index();
+                        break;                        
 
                     case 'tab':
                         $DataViewer = new \App\Models\Preview\TAB();

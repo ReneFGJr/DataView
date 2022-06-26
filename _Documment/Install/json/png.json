@@ -1,13 +1,13 @@
 {
     "displayName": "Brapci DataView - IMAGENS",
-    "description": "Visualizado de dados Imagens JPG",
+    "description": "Visualizado de dados Imagens PNG",
     "toolName": "brapci_dataview",
     "scope": "file",
     "types": [
         "preview"
     ],
-    "toolUrl": "$HTTP/index.php/dataview/view/jpg",
-    "contentType": "image/jpeg",
+    "toolUrl": "$HTTP/index.php/dataview/view/png",
+    "contentType": "image/png",
     "toolParameters": {
         "queryParameters": [
             {
