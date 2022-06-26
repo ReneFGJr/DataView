@@ -10,6 +10,13 @@ if (isset($in[1]))
 
 switch ($cmd)
     {
+        case 'list':
+            $cmd = 'curl http://localhost:8080/api/admin/externalTools | jq ';
+            $rsp = shell_exec($cmd);
+            echo '======='.cr();
+            echo $rsp;
+            break;
+            
         case 'register':
             $url = variable_http();            
             if (isset($in[2]))
