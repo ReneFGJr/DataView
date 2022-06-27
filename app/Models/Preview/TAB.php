@@ -44,7 +44,12 @@ class TAB extends Model
     {
         $SERVER_URL = $_GET['siteUrl'];
         $PERSISTENT_ID = $_GET['PID'];
-        $API_TOKEN = $_GET['key'];
+        if (isset($_GET['key']))
+            {
+                $API_TOKEN = $_GET['key'];
+            } else {
+                $API_TOKEN = '';
+            }
         $datasetId = $_GET['datasetId'];
         $fileid = $_GET['fileid'];
 
