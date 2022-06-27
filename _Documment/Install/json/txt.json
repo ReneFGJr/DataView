@@ -1,3 +1,4 @@
+{
 "displayName": "Brapci DataView - TXT",
 "description": "Visualizado de dados Tabulares",
 "toolName": "brapci_dataview",
@@ -5,8 +6,8 @@
 "types": [
     "preview"
 ],
-"toolUrl": "$HTTP",
-"contentType": "text/tab-separated-values",
+"toolUrl": "$HTTP/dataview/index.php/dataview/view/txt",
+"contentType": "text/plan",
 "toolParameters": {
     "queryParameters": [
         {

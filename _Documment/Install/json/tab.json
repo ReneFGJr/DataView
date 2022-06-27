@@ -6,7 +6,7 @@
     "types": [
         "preview"
     ],
-    "toolUrl": "$HTTP/index.php/dataview/view/tab",
+    "toolUrl": "$HTTP/dataview/index.php/dataview/view/tab",
     "contentType": "text/tab-separated-values",
     "toolParameters": {
         "queryParameters": [

@@ -6,7 +6,7 @@
     "types": [
         "preview"
     ],
-    "toolUrl": "$HTTP/index.php/dataview/view/png",
+    "toolUrl": "$HTTP/dataview/index.php/dataview/view/png",
     "contentType": "image/png",
     "toolParameters": {
         "queryParameters": [
