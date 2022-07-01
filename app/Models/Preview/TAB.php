@@ -57,7 +57,9 @@ class TAB extends Model
         //$SERVER_URL = 'http://localhost:8080';
         echo $SERVER_URL.'<hr>';
 
-        $file = $SERVER_URL . '/api/access/datafile/' . $fileid . '?key=' . $API_TOKEN;
+        $file = $SERVER_URL . '/api/access/datafile/' . $fileid;
+        if (strlen($API_TOKEN) > 0) { $file .= '?key=' . $API_TOKEN; }
+        exit;
         $limit = 20;
         $ln = 0;
         $data = array();
