@@ -42,6 +42,8 @@ class TAB extends Model
 
     function index()
     {
+        $Cache = new \App\Models\IO\Cache();
+        
         $SERVER_URL = $_GET['siteUrl'];
         $PERSISTENT_ID = $_GET['PID'];
         if (isset($_GET['key'])) {
@@ -60,6 +62,9 @@ class TAB extends Model
         if (strlen($API_TOKEN) > 0) {
             $file .= '?key=' . $API_TOKEN;
         }
+
+        $file = cached($file);
+
         $limit = 20;
         $ln = 0;
         $data = array();
