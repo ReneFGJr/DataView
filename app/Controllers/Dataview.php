@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 
-helper(['boostrap', 'url', 'form', 'sisdoc_form']);
+helper(['boostrap', 'url', 'form', 'sisdoc_forms']);
 $this->session = \Config\Services::session();
 $language = \Config\Services::language();
 
