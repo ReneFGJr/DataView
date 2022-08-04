@@ -104,7 +104,7 @@ function help_http_dataverse()
 }
 function cr()
 {
-    return chr(13) . chr(10);
+    return chr(10) . chr(13);
 }
 function cab()
 {
@@ -114,9 +114,9 @@ function cab()
 function help()
 {
     echo 'Funções:' . cr();
-    echo '- register CONTENT_TYPE - Registra um visualizado para um tipo de arquivo (Content-type)';
-    echo '- list - Mostra os visualizadores ativos';
-    echo '- delete ID - Exclui um visualizador ativo';
+    echo '- register CONTENT_TYPE - Registra um visualizado para um tipo de arquivo (Content-type)' . cr();
+    echo '- list - Mostra os visualizadores ativos' . cr();
+    echo '- delete ID - Exclui um visualizador ativo' . cr();
     echo cr();
     echo cr();
 }
