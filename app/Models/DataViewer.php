@@ -47,49 +47,47 @@ class DataViewer extends Model
         $sx = '';
         $sx .= h('Form');
 
-        if (isset($_POST['type']))
-            {
-                $tp = $_POST["type"];
-                $url = $_POST["url"];	
+        if (isset($_POST['type'])) {
+            $tp = $_POST["type"];
+            $url = $_POST["url"];
 
-                switch($tp)
-                    {
-                        case 'tab':
-                            $TSV = new \App\models\Preview\TSV();
-                            $sx = $TSV->view($url,"\t");
-                            return $sx;
-                        break;
+            switch ($tp) {
+                case 'tab':
+                    $TSV = new \App\models\Preview\TSV();
+                    $sx = $TSV->view($url, "\t");
+                    return $sx;
+                    break;
 
-                        default:
-                            $sx .= '=NOT FOUND==>'.$tp;
-                        break;
-                    }
+                default:
+                    $sx .= '=NOT FOUND==>' . $tp;
+                    break;
             }
+        }
 
 
         $type = array();
         $type['tab'] = 'tab';
         $type['pdf'] = 'pdf';
-        
-        $url = PATH.MODULE.'/view/form';
+
+        $url = PATH . MODULE . '/view/form';
         $sx .= form_open($url);
         $vlr = '';
-        if (isset($_POST['url']) and ($_POST['url'] != '')) 
-            {
-                $vlr = $_POST['url'];
-            }
+        if (isset($_POST['url']) and ($_POST['url'] != '')) {
+            $vlr = $_POST['url'];
+        }
         $sx .= 'URL<br>';
         $sx .= form_input(array('name' => 'url', 'value' => $vlr, 'placeholder' => 'Type', 'class' => 'form-control'));
         $sx .= '<br>';
         $sx .= 'VIEW TYPE<br>';
         $sx .= '<select name="type" class="form-control">';
         $sx .= '<option value="">Select</option>';
-        foreach($type as $t => $v)
-            {
-                $check = '';
-                if($v==$tp) { $check = 'selected'; }
-                $sx .= '<option value="'.$v.'" '.$check.'>'.$t.'</option>'.chr(13);
+        foreach ($type as $t => $v) {
+            $check = '';
+            if ($v == $tp) {
+                $check = 'selected';
             }
+            $sx .= '<option value="' . $v . '" ' . $check . '>' . $t . '</option>' . chr(13);
+        }
         $sx .= '</select>';
         $sx .= '<br>';
         $sx .= form_submit(array('name' => 'action', 'value' => 'View', 'class' => 'btn btn-outline-primary'));
@@ -125,32 +123,32 @@ class DataViewer extends Model
     }
 
     function getPOST()
-        {
-            $dv = array();
-            $dv['type'] = '';
-            $dv['fileid'] = '';
-            $dv['siteUrl'] = '';
-            $dv['PID'] = '';
-            $dv['key'] = '';
-            $dv['datasetId'] = '';
-            $dv['localeCode'] = '';
-            $dv['preview'] = '';
-    
-            foreach ($_POST as $field => $value) {
-                if ($field == '?fileid') {
-                    $field = 'fileid';
-                }
-                $dv[$field] = $value;
+    {
+        $dv = array();
+        $dv['type'] = '';
+        $dv['fileid'] = '';
+        $dv['siteUrl'] = '';
+        $dv['PID'] = '';
+        $dv['key'] = '';
+        $dv['datasetId'] = '';
+        $dv['localeCode'] = '';
+        $dv['preview'] = '';
+
+        foreach ($_POST as $field => $value) {
+            if ($field == '?fileid') {
+                $field = 'fileid';
             }
-    
-            foreach ($_GET as $field => $value) {
-                if ($field == '?fileid') {
-                    $field = 'fileid';
-                }
-                $dv[$field] = $value;
-            }
-            return $dv;
+            $dv[$field] = $value;
         }
+
+        foreach ($_GET as $field => $value) {
+            if ($field == '?fileid') {
+                $field = 'fileid';
+            }
+            $dv[$field] = $value;
+        }
+        return $dv;
+    }
 
     function index()
     {
@@ -160,7 +158,7 @@ class DataViewer extends Model
             $act = $dv["type"];
             $sx .= $this->header($dv);
             $sx .= $this->logo();
-            
+
             switch ($act) {
                 case 'pdf':
                     $PDF = new \App\models\Preview\PDF();
@@ -206,8 +204,10 @@ class DataViewer extends Model
                     break;
             }
         } else {
-            $sx = lang("FileID not infomed");
-            $sx .= 'See: <a href="' . PATH . MODULE . '/help">help</a>';
+            $sx = view('header/header');
+            $sa = lang("FileID not infomed");
+            $sa .= 'See: <a href="' . PATH . MODULE . '/help">help</a>';
+            $sx .= bs(bsc($sa, 12));
         }
         return $sx;
     }
@@ -422,7 +422,7 @@ class DataViewer extends Model
 
         /*
             echo '<pre>';
-            print_r($xml);      
+            print_r($xml);
             echo '</pre>';
             */
         return $sx;
