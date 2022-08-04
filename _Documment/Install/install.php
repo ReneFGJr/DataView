@@ -3,90 +3,84 @@ $in = $argv;
 /************************** Comand */
 $cmd = '';
 cab();
-if (isset($in[1]))
-    {
-        $cmd = $in[1];
-    }
+if (isset($in[1])) {
+    $cmd = $in[1];
+}
 
-switch ($cmd)
-    {
-        case 'delete':
-            if (isset($in[2]))
-                {
-                    $id = $in[2];
-                    $cmd = 'curl -X DELETE http://localhost:8080/api/admin/externalTools/'.round($id);
-                    $rsp = shell_exec($cmd); 
-                    echo $rsp;       
-                } else {
-                    echo "Use: php install.php delete <ID>".cr();
-                    echo cr();
-                }
-            break;
-        case 'list':
-            $cmd = 'curl http://localhost:8080/api/admin/externalTools';
+switch ($cmd) {
+    case 'delete':
+        if (isset($in[2])) {
+            $id = $in[2];
+            $cmd = 'curl -X DELETE http://localhost:8080/api/admin/externalTools/' . round($id);
             $rsp = shell_exec($cmd);
-            echo '======='.cr();
-            $json = (array)json_decode($rsp);
-            if ((isset($json['status'])) and ($json['status'] == 'OK'))
-                {
-                    $lst = (array)$json['data'];
-                    echo "ID\tDISPLAY NAME".cr();
-                    for ($r=0;$r < count($lst);$r++)
-                        {
-                            $line = (array)$lst[$r];
-                            echo $line['id']."\t".$line['displayName'].cr();
-                        }
-                    echo cr();
-                }
-            break;
+            echo $rsp;
+        } else {
+            echo "Use: php install.php delete <ID>" . cr();
+            echo cr();
+        }
+        break;
+    case 'list':
+        $cmd = 'curl http://localhost:8080/api/admin/externalTools';
+        $rsp = shell_exec($cmd);
+        echo '=======' . cr();
+        $json = (array)json_decode($rsp);
+        if ((isset($json['status'])) and ($json['status'] == 'OK')) {
+            $lst = (array)$json['data'];
+            echo "ID\tDISPLAY NAME" . cr();
+            for ($r = 0; $r < count($lst); $r++) {
+                $line = (array)$lst[$r];
+                echo $line['id'] . "\t" . $line['displayName'] . cr();
+            }
+            echo cr();
+        }
+        break;
 
-        case 'register':
-            $url = variable_http();            
-            if (isset($in[2]))
-                {
-                    $type = $in[2];
-                    $file = 'json/'.$type.'.json';
-                    if (file_exists($file))
-                        {
-                            $txt = file_get_contents($file);
-                            $txt = str_replace('$HTTP',$url,$txt);
-                            echo $txt;
-                            dircheck('.tmp/');
-                            dircheck('.tmp/.json');
-                            $filed = '.tmp/.json/dataview.json';
-                            file_put_contents($filed,$txt);
-                            $cmd = "curl -X POST -H 'Content-type: application/json' http://localhost:8080/api/admin/externalTools --upload-file ".$filed;
-                            $rst = shell_exec($cmd);
-                            //if (file_exists($filed)) { unlink($filed); }
-                            echo $rst;
-                        } else {
-                            echo "\e[00;31m ERROR: configuration type '$type' not found \e[00;00m".cr();
-                        }
-                } else {
-                    help_register();                    
-                }
-                break;
-        default:
-            help();
-    }
+    case 'register':
+        $url = variable_http();
+        if (isset($in[2])) {
+            $type = $in[2];
+            $file = 'json/' . $type . '.json';
+            if (file_exists($file)) {
+                $txt = file_get_contents($file);
+                $txt = str_replace('$HTTP', $url, $txt);
+                echo $txt;
+                dircheck('.tmp/');
+                dircheck('.tmp/.json');
+                $filed = '.tmp/.json/dataview.json';
+                file_put_contents($filed, $txt);
+                $cmd = "curl -X POST -H 'Content-type: application/json' http://localhost:8080/api/admin/externalTools --upload-file " . $filed;
+                $rst = shell_exec($cmd);
+                //if (file_exists($filed)) { unlink($filed); }
+                echo $rst;
+            } else {
+                echo "\e[00;31m ERROR: configuration type '$type' not found \e[00;00m" . cr();
+            }
+        } else {
+            help_register();
+        }
+        break;
+    default:
+        help();
+}
 
 /***************************** CHECK */
 function variable_http()
-    {
-        $url = trim((string)getenv("HTTP_DATAVERSE"));
-        if ($url=='')
-            {
-                help_http_dataverse();
-            } else {
-                echo "URL: \e[00;34m".$url."\e[00;00m".cr();
-            }
-        return $url;
+{
+    $url = trim((string)getenv("HTTP_DATAVERSE"));
+    if ($url == '') {
+        help_http_dataverse();
+    } else {
+        echo "URL: \e[00;34m" . $url . "\e[00;00m" . cr();
     }
+    return $url;
+}
 
 /* checa e cria diretorio */
-function dircheck($dir) {
+function dircheck($dir)
+{
     $ok = 0;
-    if (is_dir($dir)) { $ok = 1;
+    if (is_dir($dir)) {
+        $ok = 1;
     } else {
         mkdir($dir);
         $rlt = fopen($dir . '/index.php', 'w');
@@ -94,45 +88,44 @@ function dircheck($dir) {
         fclose($rlt);
     }
     return ($ok);
-}    
+}
 
 /***************************** HELP */
 function help_http_dataverse()
-    {
-        echo "\e[00;31m".cr();
-        echo '***** WARNING - ATENÇÃO **********************************************'.cr();
-        echo 'A variável de ambiente "HTTP_DATAVERSE" não está definida no ambiente'.cr();
-        echo 'Defina a URL de instalação do visualizado DataView'.cr();
-        echo 'Ex:'.cr();
-        echo "\e[00;34m set HTTP_DATAVERSE=http://vitrine.rnp.br/dataview \e[00;31m".cr();
-        echo '**********************************************************************'.cr();
-        echo "\e[00;00m".cr();
-
-    }
+{
+    echo "\e[00;31m" . cr();
+    echo '***** WARNING - ATENÇÃO **********************************************' . cr();
+    echo 'A variável de ambiente "HTTP_DATAVERSE" não está definida no ambiente' . cr();
+    echo 'Defina a URL de instalação do visualizado DataView' . cr();
+    echo 'Ex:' . cr();
+    echo "\e[00;34m set HTTP_DATAVERSE=http://vitrine.rnp.br/dataview \e[00;31m" . cr();
+    echo '**********************************************************************' . cr();
+    echo "\e[00;00m" . cr();
+}
 function cr()
-    {
-        return chr(10).chr(13);
-    }
+{
+    return chr(13) . chr(10);
+}
 function cab()
-    {
-        echo '= DataView - Ajuda ========== v0.22.06.26'.cr();
-        echo cr();
-    }
+{
+    echo '= DataView - Ajuda ========== v0.22.06.26' . cr();
+    echo cr();
+}
 function help()
-    {
-        echo 'Funções:'.cr();
-        echo '- register CONTENT_TYPE - Registra um visualizado para um tipo de arquivo (Content-type)';
-        echo '- list - Mostra os visualizadores ativos';
-        echo '- delete ID - Exclui um visualizador ativo';
-        echo cr();
-        echo cr();
-    }
+{
+    echo 'Funções:' . cr();
+    echo '- register CONTENT_TYPE - Registra um visualizado para um tipo de arquivo (Content-type)';
+    echo '- list - Mostra os visualizadores ativos';
+    echo '- delete ID - Exclui um visualizador ativo';
+    echo cr();
+    echo cr();
+}
 
 function help_register()
-    {
-        echo "register CONTENT_TYPE".cr();
-        echo "=====================".cr();
-        echo cr();
-        $dir = scandir("json");
-        print_r($dir);
-    }
+{
+    echo "register CONTENT_TYPE" . cr();
+    echo "=====================" . cr();
+    echo cr();
+    $dir = scandir("json");
+    print_r($dir);
+}
