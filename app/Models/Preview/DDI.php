@@ -58,13 +58,55 @@ class DDI extends Model
         //$SERVER_URL = 'http://localhost:8080';
         echo $SERVER_URL . '<hr>';
 
-        $file = $SERVER_URL . '/api/access/datafile/' . $fileid;
+        $file = $SERVER_URL . '/api/datasets/export?exporter=ddi&persistentId='. $PERSISTENT_ID;
+
         if (strlen($API_TOKEN) > 0) {
             $file .= '?key=' . $API_TOKEN;
         }
 
         $file = $Cache->cached($file);
+        $xml = (array)simplexml_load_file($file);
         $sx = '';
+        $sx .= '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">' . chr(13);
+        $sx .= '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>' . chr(13);
+        $sx .= '' . chr(13);
+        if (isset($xml['dataDscr']))
+            {
+                $var = (array)$xml['dataDscr'];
+                $var = (array)$var['var'];
+                for ($r=0;$r < count($var);$r++)
+                    {
+                        $line = (array)$var[$r];
+                        $var_name = $line['labl'];
+                        $sx .= '<hr>';
+                        $sx .= h($var_name,4);
+
+                        /********************* Variáveis */
+                        if (isset($line['sumStat']))
+                        {
+                        $sumStat = (array)$line['sumStat'];
+                        $sx .= '<table width="100%" style="border: 1px solid #000;">';
+                        $sa = '';
+                        $sb = '';
+                        $sz = round(100 / 7);
+                        for ($z=0;$z <= 7;$z++)
+                            {
+                                $sa .= '<th width="' . $sz . '" style="font-size: 50%">' . lang('dataview.sumSata_' . $z) . '</th>';
+                                $vlr = $sumStat[$z];
+                                if ($pos = strpos($vlr,'.'))
+                                    {
+                                        $vlr = substr($vlr,0,$pos+3);
+                                    }
+                                $sb .= '<td style="text-align: center" >' . $vlr . '</td>';
+                            }
+                        $sx .= '<tr>'.$sa.'</tr>';
+                        $sx .= '<tr>' . $sb . '</tr>';
+                        $sx .= '</table>';
+                        } else {
+                            //pre($line);
+                        }
+                    }
+            }
         return $sx;
     }
 }
