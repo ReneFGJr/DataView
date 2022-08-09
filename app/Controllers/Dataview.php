@@ -88,6 +88,11 @@ class Dataview extends BaseController
                 echo $DataViewer->index();
                 break;
 
+            case 'ddi':
+                $DataViewer = new \App\Models\Preview\DDI();
+                echo $DataViewer->index();
+                break;
+
             case 'form':
                 $DataViewer = new \App\Models\DataViewer();
                 $sx .= $this->cab();
