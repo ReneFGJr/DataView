@@ -18,8 +18,21 @@ class Dataview extends BaseController
     public function index()
     {
         $DataViewer = new \App\Models\DataViewer();
-        $tela = $DataViewer->index();
-        return $tela;
+        //$sx = $DataViewer->index();
+        $sx = view('header/header');
+        $sx .=  '<div class="container-fluid">';
+        $sx .=  '<div class="row">';
+        $sx .=  '<div class="col-6 p-5 text-center h-100 d-inline-block" style="background-color: #830705;">';
+        $sx .=  '<img src="/img/logo/logo_dataview-pb.png" class="mt-5 mb-5" style="width: 300px;">';
+        $sx .=  '<div style="height: 1024px;"></div>';
+        $sx .=  '</div>';
+        $sx .=  '<div class="col-6 p-1 text-end" style="background-color: #FFF;">';
+        $sx .=  "v0.022.08.09";
+        $sx .=  '</div>';
+        $sx .=  '</div>';
+        $sx .=  '</div>';
+        $sx .=  '</div>';
+        return $sx;
     }
 
     function file($id = '')
@@ -88,9 +101,20 @@ class Dataview extends BaseController
                 break;
 
             default:
-                echo '<pre>';
-                echo h($content);
-                print_r($_GET);
+                $sx = '';
+                $sx .=  '<div class="container-fluid">';
+                $sx .=  '<div class="row">';
+                $sx .=  '<div class="col-6" style="background-color: #830705;">';
+                $sx .=  '<img src="/img/logo/logo_dataview-pb.png" style="width: 50%">';
+                $sx .=  '</div>';
+                $sx .=  '<div class="col-6" style="background-color: #830705;">';
+                $sx .=  "XXXXXXXXXXXX";
+                $sx .=  '</div>';
+                $sx .=  '</div>';
+                $sx .=  '</div>';
+                $sx .=  '<pre>';
+                $sx .=  h($content);
+                return $sx;
                 break;
         }
         return $sx;
