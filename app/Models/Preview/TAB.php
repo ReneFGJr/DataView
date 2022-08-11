@@ -43,7 +43,7 @@ class TAB extends Model
     function index()
     {
         $Cache = new \App\Models\IO\Cache();
-        
+
         $SERVER_URL = $_GET['siteUrl'];
         $PERSISTENT_ID = $_GET['PID'];
         if (isset($_GET['key'])) {
@@ -63,7 +63,7 @@ class TAB extends Model
             $file .= '?key=' . $API_TOKEN;
         }
 
-        $file = cached($file);
+        $file = $Cache->cached($file);
 
         $limit = 20;
         $ln = 0;
@@ -109,7 +109,7 @@ class TAB extends Model
                 $line = explode(';', $line);
                 for ($r = 0; $r < count($line); $r++) {
                     $value = $line[$r];
-                    if ($value[0] == '"') {
+                    if (substr($value,0,1) == '"') {
                         $value = troca($value, '"', '');
                     }
                     $sx .= '<td>' . $value . '</td>' . chr(13);

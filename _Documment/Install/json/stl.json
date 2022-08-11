@@ -1,0 +1,33 @@
+{
+    "displayName": "Brapci DataView - 3D Objects",
+    "description": "Visualizado de dados STL",
+    "toolName": "brapci_dataview",
+    "scope": "file",
+    "types": [
+        "preview"
+    ],
+    "toolUrl": "$HTTP/dataview/index.php/dataview/view/stl",
+    "contentType": "text/tab-separated-values",
+    "toolParameters": {
+        "queryParameters": [
+            {
+                "fileid": "{fileId}"
+            },
+            {
+                "siteUrl": "{siteUrl}"
+            },
+            {
+                "PID": "{datasetPid}"
+            },
+            {
+                "key": "{apiToken}"
+            },
+            {
+                "datasetId": "{datasetId}"
+            },
+            {
+                "localeCode": "{localeCode}"
+            }
+        ]
+    }
+}

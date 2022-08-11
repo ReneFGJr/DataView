@@ -49,7 +49,16 @@ class Cache extends Model
 
         $f = $dir . '/' . md5($file);
         if (file_exists($f)) {
+            echo "CACHED";
             $file = $f;
+        } else {
+            echo "DOWNLOAD";
+            $txt = file_get_contents($file);
+            if (strlen($txt) > 100)
+                {
+                    file_put_contents($f,$txt);
+                    $file = $f;
+                }
         }
         return $file;
     }
