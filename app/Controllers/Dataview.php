@@ -23,7 +23,7 @@ class Dataview extends BaseController
         $sx .=  '<div class="container-fluid">';
         $sx .=  '<div class="row">';
         $sx .=  '<div class="col-6 p-5 text-center h-100 d-inline-block" style="background-color: #830705;">';
-        $sx .=  '<img src="/img/logo/logo_dataview-pb.png" class="mt-5 mb-5" style="width: 300px;">';
+        $sx .=  '<img src="'.getenv('app.baseURL').'/img/logo/logo_dataview-pb.png" class="mt-5 mb-5" style="width: 300px;">';
         $sx .=  '<div style="height: 1024px;"></div>';
         $sx .=  '</div>';
         $sx .=  '<div class="col-6 p-1 text-end" style="background-color: #FFF;">';
