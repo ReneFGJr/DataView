@@ -1,13 +1,13 @@
 {
-    "displayName": "Brapci DataView - Dataverse",
-    "description": "Visualizado de dados",
+    "displayName": "Brapci DataView - Dataverse - PDF",
+    "description": "Visualizado de dados PDF",
     "toolName": "brapci_dataview",
     "scope": "file",
     "types": [
         "preview"
     ],
     "toolUrl": "$HTTP",
-    "contentType": "text/tab-separated-values",
+    "contentType": "application/pdf",
     "toolParameters": {
         "queryParameters": [
             {
