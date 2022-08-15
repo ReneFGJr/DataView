@@ -2,6 +2,8 @@
 # Operating Specific Junk Files
 #-------------------------
 
+/tmp/
+.tmp/
 # OS X
 .DS_Store
 .AppleDouble

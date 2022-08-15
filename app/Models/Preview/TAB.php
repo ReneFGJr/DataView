@@ -56,14 +56,14 @@ class TAB extends Model
 
         /**** */
         //$SERVER_URL = 'http://localhost:8080';
-        echo $SERVER_URL . '<hr>';
 
         $file = $SERVER_URL . '/api/access/datafile/' . $fileid;
         if (strlen($API_TOKEN) > 0) {
             $file .= '?key=' . $API_TOKEN;
         }
 
-        $file = $Cache->cached($file);
+        $file = $Cache->download($file);
+
 
         $limit = 20;
         $ln = 0;

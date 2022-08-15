@@ -32,6 +32,8 @@ $routes->setAutoRoute(true);
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
 $routes->get('/', 'Dataview::index');
+$routes->get('/help', 'Dataview::help');
+$routes->get('/help/(:any)', 'Dataview::help/$1');
 
 /*
  * --------------------------------------------------------------------
