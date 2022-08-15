@@ -15,7 +15,7 @@ define("MODULE", 'dataview');
 
 class Dataview extends BaseController
 {
-    public function index()
+    public function content($txt='')
     {
         $DataViewer = new \App\Models\DataViewer();
         //$sx = $DataViewer->index();
@@ -28,12 +28,29 @@ class Dataview extends BaseController
         $sx .=  '</div>';
         $sx .=  '<div class="col-6 p-1 text-end" style="background-color: #FFF;">';
         $sx .=  "v0.022.08.09";
+
+        $sx .= $txt;
+
         $sx .=  '</div>';
         $sx .=  '</div>';
         $sx .=  '</div>';
         $sx .=  '</div>';
         return $sx;
     }
+
+    function index()
+        {
+            $sx = $this->content('ONLINE');
+            return $sx;
+        }
+
+    function clear()
+        {
+            $Cache = new \App\Models\IO\Cache();
+            $nr = $Cache->clear();
+            $sx = $this->content('<center>'.bsmessage($nr. ' cache cleared.'. '</center>',1));
+            return $sx;
+        }
 
     function file($id = '')
     {

@@ -6,7 +6,7 @@
     "types": [
         "preview"
     ],
-    "toolUrl": "$HTTP",
+    "toolUrl": "$HTTP/dataview/index.php/dataview/view/pdf",
     "contentType": "application/pdf",
     "toolParameters": {
         "queryParameters": [
