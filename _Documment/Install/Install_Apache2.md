@@ -4,6 +4,9 @@ Existem duas maneiras de redirecionar os acessos para o aplicadir do DataView
 <h2>Primeira Forma</h2>
 A primeira é criar uma regra de excessão no Apache, encaminhando para um diretorio quando acessado pelo endereço https://[SEU DNS]/dataview
 
+Os arquivos de configuração estão em
+<code> cd /etc/apache2/sites-enabled</code>
+
 Crie um regra para o Apache ignorar o Path /dataview
 
 <code>ProxyPass /dataview !</code>
