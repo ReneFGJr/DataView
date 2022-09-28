@@ -16,15 +16,15 @@ Crie um alias para o Apache redirecionar para a pasta do DataView
 
 Configure o tipo de acesso ao diretório
 <br/>
-<code>
-        &lt;Directory "/var/www/DataView/public/"><br/>
-                Options Indexes FollowSymLinks MultiViews<br/>
-                AllowOverride None<br/>
-                Order allow,deny<br/>
-                allow from all<br/>
-                Require all granted<br/>
-        &lt;/Directory><br/>
-</code>
+<pre>
+        &lt;Directory "/var/www/DataView/public/">
+                Options Indexes FollowSymLinks MultiViews
+                AllowOverride None
+                Order allow,deny
+                allow from all
+                Require all granted
+        &lt;/Directory>
+</pre>
 
 
 <h2>Segunda Forma</h2>
