@@ -14,16 +14,24 @@ Para ativação consulte: <a href="APACHE.md">APACHE.md</a>
 Para instalação você pode baixa diretamente o arquivo em ZIP pelo <a href="https://github.com/ReneFGJr/DataView/archive/refs/heads/main.zip">ZIP do Github</a> ou clonar o repositório em sua instalação.
 
 <code>
-    cd /var/www
-    git close https://github.com/ReneFGJr/DataView.git
+    cd /var/www #ou o diretório que preferir<br/>
+    git clone https://github.com/ReneFGJr/DataView.git
 </code>
 <h3></h3>
 
 <h2>Para configuração</h2>
 
-Renomear o arquivo "env" para ".env"
+Acesse a pasta de instalação ex:
+<code>
+ cd /var/www/DataView
+</code>
+
+Criar uma cópia do arquivo "env" para configurações ".env"
+<code>cp env .env</code>
 
 Editar o arquivo .env
+<code>nano .env</code>
+
 Editando os parametros para produção ou para desenvolvimento
 
 CI_ENVIRONMENT = production

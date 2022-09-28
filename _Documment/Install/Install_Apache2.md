@@ -1,5 +1,29 @@
 
 
+Existem duas maneiras de redirecionar os acessos para o aplicadir do DataView
+<h2>Primeira Forma</h2>
+A primeira é criar uma regra de excessão no Apache, encaminhando para um diretorio quando acessado pelo endereço https://[SEU DNS]/dataview
+
+Crie um regra para o Apache ignorar o Path /dataview
+
+<code>ProxyPass /dataview !</code>
+
+Crie um alias para o Apache redirecionar para a pasta do DataView
+<code>Alias "/dataview/" "/var/www/DataView/public/"</code>
+
+Configure o tipo de acesso ao diretório
+<code>
+        &lt;Directory "/var/www/DataView/public/">
+                Options Indexes FollowSymLinks MultiViews
+                AllowOverride None
+                Order allow,deny
+                allow from all
+                Require all granted
+        &lt;/Directory>
+</code>
+
+
+<h2>Segunda Forma</h2>
 Insira em seu arquivo default do Apache2 (porta 443) o redirecionador via Proxy para a porta 8010
 <pre>
        &lt;Location /dataview>
