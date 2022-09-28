@@ -1,5 +1,10 @@
 # DataView
 
+<h1>Requisistos</h1>
+<ul>
+<li>PHP 7.4 ou superiro</li>
+</ul>
+
 <h1>Introdução</h1>
 
 O DataView é uma ferramenta externa que se integra ao Dataverse possibilitando a visualização de alguns arquivos sem a necessidade de baixá-los.
@@ -40,6 +45,11 @@ CI_ENVIRONMENT = development
 
 Definir a URL do site
 app.baseURL = 'http://pocdadosabertos.inep.rnp.br/dataview/'
+
+Libere acesso a escrita no diretorio abaixo para o usuário web
+
+chown www-data:www-data /var/www/DataView/writable/ -R
+chown www-data:www-data /var/www/DataView/.tmp/ -R
 
 Para instalar, consultar ou remover visualizadores consulte:
 <a href="_Documment/Install/Install.md">Instalador (Aplicativo)</a>

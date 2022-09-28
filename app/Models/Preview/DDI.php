@@ -58,12 +58,13 @@ class DDI extends Model
         //$SERVER_URL = 'http://localhost:8080';
 
         $file = $SERVER_URL . '/api/datasets/export?exporter=ddi&persistentId=' . $PERSISTENT_ID;
-        $file = 'https://vitrinedadosabertos.rnp.br/api/datasets/export?exporter=ddi&persistentId=doi%3A10.34841/rnp/RILP3P';
-        $file = $SERVER_URL . '/api/datasets/export?exporter=ddi&persistentId=' . $PERSISTENT_ID;
+        $file = troca($file,'doi:', 'doi%3A');
 
         if (strlen($API_TOKEN) > 0) {
-            $file .= '?key=' . $API_TOKEN;
+            $file .= '&key=' . $API_TOKEN;
         }
+
+
 
         $file = $Cache->download($file);
         $xml = (array)simplexml_load_file($file);
@@ -79,9 +80,33 @@ class DDI extends Model
                 $line = (array)$var[$r];
                 $var_name = $line['labl'];
 
+                /************************************************* @ATTRIBUTeS */
                 $attr = (array)$line['@attributes'];
                 $sx .= '<hr>';
                 $sx .= 'Variable Name: '.$attr['name'].' ('. $attr['ID'].')';
+
+
+                /************************************************* @LOCATION */
+                $location = (array)$line['location'];
+                $location = (array)$location['@attributes'];
+                $location = (string)$location['fileid'];
+
+                /************************************************* @CATEGORY */
+                $catr = array();
+                if (isset($line['catgry']))
+                {
+                $catg = (array)$line['catgry'];
+                for ($q=0;$q < count($catg);$q++)
+                    {
+                        $catgi = (array)$catg[$q];
+                        $catr[$catgi['catValu'].' '. $catgi['labl']] = $catgi['catStat'];
+                    }
+                }
+                /************************************************* @FORMAT */
+                foreach ($catr as $key => $value) {
+                    $sx .= '<br>';
+                    $sx .= $key . ' = ' . $value;
+                }
 
                 $form = (array)$line['varFormat'];
                 $form = (array)$form['@attributes'];

@@ -26,6 +26,14 @@ Configure o tipo de acesso ao diretório
         &lt;/Directory>
 </pre>
 
+Reinicie o Apache2
+
+<code>service apache2 restart</code>
+
+Para testar, uso um navegador e digite a sua URL, ex:
+
+<code>https://[seu DNS]/dataview</code>
+
 
 <h2>Segunda Forma</h2>
 Insira em seu arquivo default do Apache2 (porta 443) o redirecionador via Proxy para a porta 8010

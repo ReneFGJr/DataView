@@ -57,7 +57,6 @@ class DataViewerAdmin extends Model
                 {
                     case 'ddi':
                         $DDI = new \App\Models\DDI();
-                        
                         $tela .= $DDI->index($d2,$d3);
                         break;
                     default:
