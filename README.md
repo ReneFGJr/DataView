@@ -1,10 +1,25 @@
 # DataView
 
-Plug-in para visualização de dados para o dataverse
+<h1>Introdução</h1>
 
+O DataView é uma ferramenta externa que se integra ao Dataverse possibilitando a visualização de alguns arquivos sem a necessidade de baixá-los.
+<br/>
+Para instalar é necessário ter acesso ao SO.
+
+<br/>
 Para ativação consulte: <a href="APACHE.md">APACHE.md</a>
-
+<br/>
 <h2>Para instalação</h2>
+
+Para instalação você pode baixa diretamente o arquivo em ZIP pelo <a href="https://github.com/ReneFGJr/DataView/archive/refs/heads/main.zip">ZIP do Github</a> ou clonar o repositório em sua instalação.
+
+<code>
+    cd /var/www
+    git close https://github.com/ReneFGJr/DataView.git
+</code>
+<h3></h3>
+
+<h2>Para configuração</h2>
 
 Renomear o arquivo "env" para ".env"
 
