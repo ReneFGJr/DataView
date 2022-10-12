@@ -7,7 +7,7 @@
         "preview"
     ],
     "toolUrl": "$HTTP/dataview/index.php/dataview/view/stl",
-    "contentType": "application/sla",
+    "contentType": "application/stf",
     "toolParameters": {
         "queryParameters": [
             {
