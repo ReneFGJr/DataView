@@ -58,6 +58,12 @@ class Dataview extends BaseController
         $this->file($id);
     }
 
+    function stf($id = '')
+    {
+        $FILE = new \App\Models\Preview\File();
+        $this->file($id);
+    }
+
     function pdf()
     {
         $PDF = new \App\Models\Preview\PDF();
