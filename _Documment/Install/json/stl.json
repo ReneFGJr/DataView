@@ -7,7 +7,7 @@
         "preview"
     ],
     "toolUrl": "$HTTP/dataview/index.php/dataview/view/stl",
-    "contentType": "application/stf",
+    "contentType": "application/vnd.ms-pki.stl",
     "toolParameters": {
         "queryParameters": [
             {
