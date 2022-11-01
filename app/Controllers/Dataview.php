@@ -58,6 +58,12 @@ class Dataview extends BaseController
         $this->file($id);
     }
 
+    function stf($id = '')
+    {
+        $FILE = new \App\Models\Preview\File();
+        $this->file($id);
+    }
+
     function pdf()
     {
         $PDF = new \App\Models\Preview\PDF();
@@ -107,6 +113,11 @@ class Dataview extends BaseController
 
             case 'ddi':
                 $DataViewer = new \App\Models\Preview\DDI();
+                echo $DataViewer->index();
+                break;
+
+            case 'stl':
+                $DataViewer = new \App\Models\Preview\STL();
                 echo $DataViewer->index();
                 break;
 
