@@ -68,6 +68,7 @@ class Cache extends Model
 
         if (file_exists($f)) {
             echo "CACHED";
+            pre($_SESSION);
             $file = $f;
         } else {
             $meth = 'CURL';
