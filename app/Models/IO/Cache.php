@@ -67,8 +67,9 @@ class Cache extends Model
         $f = $dir . '/' . md5($file);
 
         if (file_exists($f)) {
-            echo "CACHED";
-            pre($_SESSION);
+            $query = $_SERVER['QUERY_STRING'];
+            echo '<span style="font-size: 08.em; color: red;">';
+            echo "Cached ";
             $file = $f;
         } else {
             $meth = 'CURL';
