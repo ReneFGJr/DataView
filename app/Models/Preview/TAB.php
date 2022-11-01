@@ -109,7 +109,7 @@ class TAB extends Model
                 $line = explode(';', $line);
                 for ($r = 0; $r < count($line); $r++) {
                     $value = $line[$r];
-                    if (substr($value,0,1) == '"') {
+                    if (strpos($value,'"')) {
                         $value = troca($value, '"', '');
                     }
                     $sx .= '<td>' . $value . '</td>' . chr(13);
