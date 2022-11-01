@@ -64,9 +64,20 @@ class DDI extends Model
             $file .= '&key=' . $API_TOKEN;
         }
 
-
-
         $file = $Cache->download($file);
+        $txt = file_get_contents($file);
+
+        if (strpos(' '. $txt,'{"'))
+            {
+                $json = json_decode($txt, true);
+                $file = $json['message'];
+
+                echo '<h1>ERRO</h1>';
+                echo '<p>'. $json['message'].'</p>';
+                echo '<p>'.lang('O Dataset precisa estar publicado').'</p>';
+                exit;
+            }
+
         $xml = (array)simplexml_load_file($file);
 //pre($xml);
         $sx = '';
