@@ -74,7 +74,7 @@ class DDI extends Model
 
                 echo '<h1>ERRO</h1>';
                 echo '<p>'. $json['message'].'</p>';
-                echo '<p>'.lang('O Dataset precisa estar publicado').'</p>';
+                echo '<p style="font-size: 4em; font-color: red; text-align: center;">'.lang('O Dataset precisa estar publicado').'</p>';
                 exit;
             }
 
