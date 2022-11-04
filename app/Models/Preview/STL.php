@@ -42,6 +42,7 @@ class STL extends Model
 
     function index()
     {
+        $Cache = new \App\Models\IO\Cache();
 
         $SERVER_URL = $_GET['siteUrl'];
         $PERSISTENT_ID = $_GET['PID'];
@@ -50,22 +51,22 @@ class STL extends Model
         } else {
             $API_TOKEN = '';
         }
-
         $datasetId = $_GET['datasetId'];
         $fileid = $_GET['fileid'];
 
-        $file = $SERVER_URL . '/api/access/datafile/' . $fileid . '?key=' . $API_TOKEN;
+        /**** */
+        //$SERVER_URL = 'http://localhost:8080';
 
-        $sx = '';
-        $sx .= '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">' . chr(13);
-        $sx .= '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>' . chr(13);
+        $file = $SERVER_URL . '/api/datasets/export?exporter=ddi&persistentId=' . $PERSISTENT_ID;
+        $file = troca($file, 'doi:', 'doi%3A');
 
-        $sx = '
+        if (strlen($API_TOKEN) > 0) {
+            $file .= '&key=' . $API_TOKEN;
+        }
 
+        $file = $Cache->download($file);
 
-        ';
-        $sx .= $file;
-        echo $sx;
+        echo strlen($file);
     }
 
 }
