@@ -57,7 +57,7 @@ class Cache extends Model
             return $n;
         }
 
-    function download($file)
+    function download($file,$msg=false)
     {
         $dir = '../.tmp';
         dircheck($dir);
@@ -68,9 +68,12 @@ class Cache extends Model
 
         if (file_exists($f)) {
             $query = $_SERVER['QUERY_STRING'];
-            echo '<span style="font-size: 08.em; color: red;">';
-            echo "Cached ";
-            echo '</span>';
+            if ($msg == true)
+            {
+                echo '<span style="font-size: 08.em; color: red;">';
+                echo "Cached ";
+                echo '</span>';
+            }
             $file = $f;
         } else {
             $meth = 'CURL';

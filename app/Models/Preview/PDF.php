@@ -67,7 +67,7 @@ class PDF extends Model
             header('Content-Disposition: inline; filename="dataview_'.md5($file).'.pdf"');
             header('Content-Transfer-Encoding: binary');
             header('Content-Length: ' . filesize($file));
-            @readfile($file);
+            readfile($file);
             exit;
         }
 }
