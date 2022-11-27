@@ -69,7 +69,8 @@ class TSV extends Model
                     }
                 return $sx;
             } else {
-                $sx .= h('<h1>File not found</h1>');
+                $sx = h('<h1>File not found</h1>');
+                return $sx;
             }
             fclose($handle);
         }
