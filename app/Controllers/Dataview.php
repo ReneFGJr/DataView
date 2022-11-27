@@ -111,6 +111,11 @@ class Dataview extends BaseController
                 echo $DataViewer->index();
                 break;
 
+            case 'txt':
+                $DataViewer = new \App\Models\Preview\TXT();
+                echo $DataViewer->index();
+                break;
+
             case 'ddi':
                 $DataViewer = new \App\Models\Preview\DDI();
                 echo $DataViewer->index();

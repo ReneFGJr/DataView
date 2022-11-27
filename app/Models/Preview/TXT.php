@@ -4,7 +4,7 @@ namespace App\Models\Preview;
 
 use CodeIgniter\Model;
 
-class TSV extends Model
+class TXT extends Model
 {
     protected $DBGroup              = 'default';
     protected $table                = 'tsvs';
@@ -40,38 +40,94 @@ class TSV extends Model
     protected $beforeDelete         = [];
     protected $afterDelete          = [];
 
-    function view($file,$sep=',')
-        {
-            $limit = 30;
-            $handle = fopen($file, "r");
-            $nr = 0;
-            $hd = array();
-            $dt = array();
-            /****************************************************** INPORT */
-            if ($handle) {
-                while (($nr < $limit) and ($line = fgets($handle)) !== false)
-                {
-                    /*************************************************** LINE */
-                    $eln = explode($sep,$line);
-                    if ($nr == 0)
-                        {
-                            $hd = $eln;
-                        } else {
-                           array_push($dt,$eln);
-                        }
-                    /*************************************************** LINE */
-                    $nr++;
-                }
-                $sx = '';
-                foreach($dt as $k=>$line)
-                    {
-                        $sx .= $line.'<br>';
-                    }
-                return $sx;
-            } else {
-                $sx = h('<h1>File not found</h1>');
-                return $sx;
-            }
-            fclose($handle);
+    function index()
+    {
+        $Cache = new \App\Models\IO\Cache();
+
+        $SERVER_URL = $_GET['siteUrl'];
+        $PERSISTENT_ID = $_GET['PID'];
+        if (isset($_GET['key'])) {
+            $API_TOKEN = $_GET['key'];
+        } else {
+            $API_TOKEN = '';
         }
+        $datasetId = $_GET['datasetId'];
+        $fileid = $_GET['fileid'];
+
+        /**** */
+        //$SERVER_URL = 'http://localhost:8080';
+
+        $file = $SERVER_URL . '/api/access/datafile/' . $fileid;
+        if (strlen($API_TOKEN) > 0) {
+            $file .= '?key=' . $API_TOKEN;
+        }
+
+        $file = $Cache->download($file);
+
+
+        $limit = 20;
+        $ln = 0;
+        $sx = '';
+        $data = array();
+        if ($file = fopen($file, "r")) {
+
+            while (!feof($file)) {
+                $line = trim(fgets($file));
+                $sx .= $line.'<br>';
+                $ln++;
+                if (($limit--) < 0) {
+                    break;
+                }
+            }
+            fclose($file);
+
+            /************************** DATA */
+
+
+            if ($limit < 0) {
+                $sx .= '
+                    <div class="alert alert-danger" role="alert">
+                    Esta vizualização apresenta uma amostra das primeiras 100 linhas
+                    </div>';
+            }
+            echo $sx;
+        }
+    }
+
+    function download()
+    {
+        $DataViewer = new \App\Models\DataViewer();
+        $dv = $DataViewer->getPOST();
+        $filename = 'tab_' . date("YmdHi") . '.pdf';
+        $url = $dv['siteUrl'];
+        if (substr($url, strlen($url), 1) != '/') {
+            $url = $url . '/';
+        }
+        $url = $url . 'api/access/datafile/' . $dv['fileid'];
+        $file = md5($url);
+        if (!file_exists('.tmp/.')) {
+            mkdir('.tmp');
+        }
+        if (!file_exists('.tmp/.tmp/.')) {
+            mkdir('.tmp/.tmp');
+        }
+        $file = '.tmp/.tmp/' . $file;
+
+        if (!file_exists(($file))) {
+            $ch = curl_init();
+            echo $url;
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+            $st = curl_exec($ch);
+            $fd = fopen($file, 'w');
+            fwrite($fd, $st);
+            fclose($fd);
+            curl_close($ch);
+
+            $txt = file_get_contents($url);
+            file_put_contents($file, $txt);
+        }
+        return ($file);
+    }
 }
