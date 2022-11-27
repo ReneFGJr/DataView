@@ -1,13 +1,13 @@
 {
 "displayName": "Brapci DataView - TXT",
-"description": "Visualizado de dados Tabulares",
+"description": "Visualizado de arquivo texto",
 "toolName": "brapci_dataview",
 "scope": "file",
 "types": [
     "preview"
 ],
 "toolUrl": "$HTTP/dataview/index.php/dataview/view/txt",
-"contentType": "text/plan",
+"contentType": "text/plain",
 "toolParameters": {
     "queryParameters": [
         {
