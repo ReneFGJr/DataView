@@ -70,6 +70,7 @@ class Cache extends Model
             $query = $_SERVER['QUERY_STRING'];
             echo '<span style="font-size: 08.em; color: red;">';
             echo "Cached ";
+            echo '</span>';
             $file = $f;
         } else {
             $meth = 'CURL';
