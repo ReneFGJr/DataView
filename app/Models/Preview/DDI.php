@@ -153,6 +153,8 @@ class DDI extends Model
 
                     for ($q = 0; $q < count($catg); $q++) {
                         $catgi = (array)$catg[$q];
+                        if (!isset($catgi['labl'])) {
+                            $catgi['labl'] = ''; }
                         $catr[$catgi['catValu'] . ' ' . $catgi['labl']] = $catgi['catStat'];
                     }
                 }
