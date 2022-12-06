@@ -350,6 +350,7 @@ class DDI extends Model
             $var = (array)$var['var'];
             for ($r = 0; $r < count($var); $r++) {
                 $line = (array)$var[$r];
+                pre($line,false);
                 $var_name = $line['labl'];
 
                 /************************************************* @ATTRIBUTeS */
