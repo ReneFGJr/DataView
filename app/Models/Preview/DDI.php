@@ -256,7 +256,12 @@ class DDI extends Model
                                     if ($value == '.') {
                                         $sa .= '.';
                                     } else {
-                                        $sa .= '<b>' . number_format($value, 2, ',', '.') . '</b>';
+                                        if ($value == 'NaN') {
+                                            $vlr = 'null';
+                                            $sa .= '<b>' . $vlr . '</b>';
+                                        } else {
+                                            $sa .= '<b>' . number_format($value, 2, ',', '.') . '</b>';
+                                        }
                                     }
                                 break;
                             }
