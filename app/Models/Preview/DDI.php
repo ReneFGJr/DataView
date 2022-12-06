@@ -239,6 +239,7 @@ class DDI extends Model
                                     $sa .= '<b>' . $vlr . '</b>';
                                     break;
                                 case 'min':
+                                echo '=====>'.$value.'<br>';
                                     $vlr = number_format($value, 2, ',', '.');
                                     $vlr = troca($vlr, ',00', '');
                                     $sa .= '<b>' . $vlr . '</b>';
