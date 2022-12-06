@@ -119,7 +119,6 @@ class DDI extends Model
 
                 /*************************************************** NAME VAR */
                 $var_name = $line['labl'];
-                pre($line,false);
 
                 $sva .= '<li onclick="" style="cursor: pointer;">'.
                     '<a href="#'.$ID.'">'.
