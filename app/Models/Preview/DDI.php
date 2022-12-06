@@ -234,9 +234,13 @@ class DDI extends Model
                                     $sa .= '<b>' . number_format($value, 0, ',', '.') . '</b>';
                                     break;
                                 case 'max':
-                                    $vlr = number_format($value, 2, ',', '.');
-                                    $vlr = troca($vlr,',00','');
-                                    $sa .= '<b>' . $vlr . '</b>';
+                                    if ($value == 'NaN') {
+                                        $vlr = 'null';
+                                    } else {
+                                        $vlr = number_format($value, 2, ',', '.');
+                                        $vlr = troca($vlr,',00','');
+                                        $sa .= '<b>' . $vlr . '</b>';
+                                    }
                                     break;
                                 case 'min':
                                     if ($value == 'NaN')
