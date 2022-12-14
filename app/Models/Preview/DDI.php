@@ -40,8 +40,75 @@ class DDI extends Model
     protected $beforeDelete         = [];
     protected $afterDelete          = [];
 
+    function hichart_pie($div='grapho',$data)
+    {
+        if (count($data) == 0)
+            {
+                return "";
+            }
+        $js = "
+            // Data retrieved from https://netmarketshare.com
+            Highcharts.chart('$div', {
+            chart: {
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false,
+                type: 'pie'
+            },
+            title: {
+                text: ''
+            },
+            tooltip: {
+                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            },
+            accessibility: {
+                point: {
+                valueSuffix: '%'
+                }
+            },
+            plotOptions: {
+                pie: {
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: true,
+                    format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                }
+                }
+            },";
+            $js .= "series: [{name: 'Brands',colorByPoint: true, data: [";
+            $d=0;
+            foreach($data as $id => $value)
+                {
+                    if ($d > 0) { $js .= ',';}
+                    $js .= '{';
+                    $js .= 'name: "'.$id.'",';
+                    $js .= 'y: '.$value.',';
+                    $js .= 'sliced: true,';
+                    $js .= 'selected: true';
+                    $js .= '}';
+                    $d++;
+                }
+            $js .= '] }] });';
+
+        $sx = '';
+        $sx .= '<figure class="highcharts-figure-x"><div id="'.$div.'"></div></figure>';
+        $sx .= '<script>' . $js . '</script>';
+
+        return $sx;
+    }
+
     function index()
     {
+        $sx = '
+        <script src="/js/highcharts.js"></script>
+        /*
+        <script src="/js/exporting.js"></script>
+        <script src="/js/export-data.js"></script>
+        <script src="/js/accessibility.js"></script>
+        */
+        ';
+
         $Cache = new \App\Models\IO\Cache();
 
         $SERVER_URL = $_GET['siteUrl'];
@@ -95,21 +162,20 @@ class DDI extends Model
                 $svba[$ID] = '';
 
                 /************************************************* @FORMAT */
-                $sx = '';
                 $form = (array)$line['varFormat'];
                 $form = (array)$form['@attributes'];
-                $sx = '';
+
                 switch ($form['type']) {
                     case 'numeric':
                         $icon = '<img title="' . lang('dataview.type_numeric') . ' ' .
-                        '" src="' . base_url('img/icone/type_numeric.png') . '" height="20"
+                            '" src="' . base_url('img/icone/type_numeric.png') . '" height="20"
                         class="rounded float-end m-2  d-block"
                         >';
                         break;
 
                     case 'character':
                         $icon = '<img title="' . lang('dataview.character') . ' ' .
-                        '" src="' . base_url('img/icone/type_charset.png') . '" height="20"
+                            '" src="' . base_url('img/icone/type_charset.png') . '" height="20"
                         class="rounded float-end m-2  d-block">';
                         break;
                     default:
@@ -120,16 +186,16 @@ class DDI extends Model
                 /*************************************************** NAME VAR */
                 $var_name = $line['labl'];
 
-                $sva .= '<li onclick="" style="cursor: pointer;">'.
-                    '<a href="#'.$ID.'">'.
-                    $attr['name'].
-                    '</a>'.
+                $sva .= '<li onclick="" style="cursor: pointer;">' .
+                    '<a href="#' . $ID . '">' .
+                    $attr['name'] .
+                    '</a>' .
                     '</li>';
 
                 if (isset($line['labl'])) {
                     $labl = (string)$line['labl'];
-                    $svba[$ID] .= '<h6>' . $labl . '<br>'.
-                    '<i>'.$attr['name'] . '</i> <sup>(' . $ID . ')</sup></h6>';
+                    $svba[$ID] .= '<h6>' . $labl . '<br>' .
+                        '<i>' . $attr['name'] . '</i> <sup>(' . $ID . ')</sup></h6>';
                 } else {
                     $svba[$ID] .= '<h6><i>' . $attr['name'] . '</i><sup>(' . $ID . ')</sup></h6>';
                 }
@@ -154,7 +220,8 @@ class DDI extends Model
                     for ($q = 0; $q < count($catg); $q++) {
                         $catgi = (array)$catg[$q];
                         if (!isset($catgi['labl'])) {
-                            $catgi['labl'] = ''; }
+                            $catgi['labl'] = '';
+                        }
                         $catr[$catgi['catValu'] . ' ' . $catgi['labl']] = $catgi['catStat'];
                     }
                 }
@@ -162,11 +229,28 @@ class DDI extends Model
 
                 /************************************* DADOS */
                 $tot = 0;
-                $sx = '';
+                $dta = array();
                 $sx .= '<table class="table" style="border: 1px solid #000; width: 100%;">';
                 foreach ($catr as $key => $value) {
                     $tot = $tot + $value;
+                    $dta[$key] = $value;
                 }
+                if (count($dta) > 0)
+                {
+                    /*
+                    $sx .= '<tr><td colspan=3"><td>'.
+                    $this->hichart_pie('div_'.($tot++),$data).
+                    '</td></tr>';
+                    */
+                }
+
+                /********************************* HIGHCHART */
+                /*
+                $sx .= '<tr><td colspan=3">'.
+                    $this->hichart_pie('div_'.($tot++), $dta).
+                    '</td></tr>'.cr();
+                */
+
                 foreach ($catr as $key => $value) {
                     $sx .= '<tr>';
                     $sx .= '<td>';
@@ -181,10 +265,9 @@ class DDI extends Model
                 $sx .= '<tr><td colspan=2 class="text-end"><b>Total</b> ' . number_format($tot, 0, ',', '.') . '</td></tr>';
                 $sx .= '</table>' . cr();
 
-                if ($tot > 0)
-                    {
-                        $svba[$ID] .= $sx;
-                    }
+                if ($tot > 0) {
+                    $svba[$ID] .= $sx;
+                }
 
 
                 /**************************************************** CATEGORY */
@@ -204,10 +287,11 @@ class DDI extends Model
                 /***************************************** Sumário Estatístico */
                 if (isset($line['sumStat'])) {
                     $v = array(
-                        'min'=>0, 'max' => 0, 'mean' => 0,
+                        'min' => 0, 'max' => 0, 'mean' => 0,
                         'median' => 0, 'mode' => 0, 'stdev' => 0,
-                        'variance' => 0, 'medn'=>0, 'invd'=>0,
-                        'vald'=>0);
+                        'variance' => 0, 'medn' => 0, 'invd' => 0,
+                        'vald' => 0
+                    );
                     foreach ($line2->sumStat as $vlr) {
                         $type = (array)$vlr;
                         $data = $type[0];
@@ -222,57 +306,54 @@ class DDI extends Model
                     $sa = '';
                     $sb = '';
                     $sz = round(100 / 10);
-                    foreach($v as $key => $value)
-                    {
+                    foreach ($v as $key => $value) {
                         $sa .= '<td width="' . $sz . '%" class="text-center">';
-                        switch($key)
-                            {
-                                case 'invd':
-                                    $sa .= '<b>' . number_format($value, 0, ',', '.') . '</b>';
-                                    break;
-                                case 'vald':
-                                    $sa .= '<b>' . number_format($value, 0, ',', '.') . '</b>';
-                                    break;
-                                case 'max':
+                        switch ($key) {
+                            case 'invd':
+                                $sa .= '<b>' . number_format($value, 0, ',', '.') . '</b>';
+                                break;
+                            case 'vald':
+                                $sa .= '<b>' . number_format($value, 0, ',', '.') . '</b>';
+                                break;
+                            case 'max':
+                                if ($value == 'NaN') {
+                                    $vlr = 'null';
+                                } else {
+                                    $vlr = number_format($value, 2, ',', '.');
+                                    $vlr = troca($vlr, ',00', '');
+                                    $sa .= '<b>' . $vlr . '</b>';
+                                }
+                                break;
+                            case 'min':
+                                if ($value == 'NaN') {
+                                    $vlr = 'null';
+                                } else {
+                                    $vlr = number_format($value, 2, ',', '.');
+                                    $vlr = troca($vlr, ',00', '');
+                                }
+                                $sa .= '<b>' . $vlr . '</b>';
+                                break;
+                            default:
+                                if ($value == '.') {
+                                    $sa .= '.';
+                                } else {
                                     if ($value == 'NaN') {
                                         $vlr = 'null';
-                                    } else {
-                                        $vlr = number_format($value, 2, ',', '.');
-                                        $vlr = troca($vlr,',00','');
                                         $sa .= '<b>' . $vlr . '</b>';
-                                    }
-                                    break;
-                                case 'min':
-                                    if ($value == 'NaN')
-                                        {
-                                            $vlr = 'null';
-                                        } else {
-                                            $vlr = number_format($value, 2, ',', '.');
-                                            $vlr = troca($vlr, ',00', '');
-                                        }
-                                    $sa .= '<b>' . $vlr . '</b>';
-                                    break;
-                                default:
-                                    if ($value == '.') {
-                                        $sa .= '.';
                                     } else {
-                                        if ($value == 'NaN') {
-                                            $vlr = 'null';
-                                            $sa .= '<b>' . $vlr . '</b>';
-                                        } else {
-                                            $sa .= '<b>' . number_format($value, 2, ',', '.') . '</b>';
-                                        }
+                                        $sa .= '<b>' . number_format($value, 2, ',', '.') . '</b>';
                                     }
+                                }
                                 break;
-                            }
+                        }
                         $sa .= '</td>';
-                        $sb .= '<td width="'.$sz.'%" class="text-center small">';
-                        $sb .= lang('dataview.'.$key);
+                        $sb .= '<td width="' . $sz . '%" class="text-center small">';
+                        $sb .= lang('dataview.' . $key);
                         $sb .= '</td>';
                     }
                     $sx = '<table width="100%" style="border: 1px solid #000;">';
-                    $sx .= '<tr>'.$sb.'</tr>';
-                    $sx .= '<tr>'.$sa.'</tr>';
+                    $sx .= '<tr>' . $sb . '</tr>';
+                    $sx .= '<tr>' . $sa . '</tr>';
                     $sx .= '</table>';
                     $svba[$ID] .= $sx;
                 }
@@ -281,23 +362,23 @@ class DDI extends Model
 
         $sva = '<ol class="p-0">' . $sva . '</ol>';
 
-        foreach($svba as $id=>$txt)
-            {
-            $svb .= '<a name="'.$id.'"></a>';
-            $svb .= '<div id="'.$id.'" style="width: 100%;" class="mt-5 col-12 col-md-6 col-lg-4">'.cr();
+        foreach ($svba as $id => $txt) {
+            $svb .= '<a name="' . $id . '"></a>';
+            $svb .= '<div id="' . $id . '" style="width: 100%;" class="mt-5 col-12 col-md-6 col-lg-4">' . cr();
             $svb .= $txt;
             $svb .= '</div>';
             $svb .= cr();
-            }
+        }
 
         $sx = '';
         $sx .= '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">' . chr(13);
         $sx .= '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>' . chr(13);
         $sx .= '' . chr(13);
-        $sx .= bsc($sva,4);
-        $sx .= bsc($svb,8);
+        $sx .= bsc($sva, 4);
+        $sx .= bsc($svb, 8);
         //$sx .= '<style>div { border: 1px solid #00f; } </style>';
         $sx = bs($sx);
+
         return $sx;
     }
 }
