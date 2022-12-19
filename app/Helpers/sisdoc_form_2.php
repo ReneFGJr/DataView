@@ -76,7 +76,7 @@ function tableview($th, $dt = array())
     $st .= '<tr><td>';
     $st .= form_open();
     $st .= '</td><td>';
-    $st .= '<select name="search_field" class="form-control">' . cr();
+    $st .= '<select name="search_field" class="form-control-sm">' . cr();
     for ($r = 1; $r < count($fl); $r++) {
         $sel = '';
         if ($r == $search_field) {
@@ -86,7 +86,7 @@ function tableview($th, $dt = array())
     }
     $st .= '</select>' . cr();
     $st .= '</td><td>';
-    $st .= '<input type="text" class="form-control" name="search" value="' . $search . '">';
+    $st .= '<input type="text" class="form-control-sm" name="search" value="' . $search . '">';
     $st .= '</td><td>';
     $st .= '<input type="submit" class="btn btn-primary" name="action" value="' . lang('sisdoc.filter') . '">';
     $st .= form_close();
@@ -128,7 +128,10 @@ function tableview($th, $dt = array())
             if (strlen($vlr) == 0) {
                 $vlr = ' ';
             }
-            $sx .= '<td class="sisdoc_td">' . anchor(($url . '/viewid/' . $line[$fl[0]]), $vlr) . '</td>';
+            /********************************************** VIEWID */
+            $sx .= '<td class="sisdoc_td">';
+            $sx .= anchor(($url . '/viewid/' . $line[$fl[0]]), $vlr);
+            $sx .= '</td>';
         }
         /* Botoes */
         $sx .= '<td><nobr>';

@@ -1,7 +1,7 @@
 echo off
 echo "Copiando Helper"
-copy ..\Brapci3.0\app\Helpers\boostrap_helper*.* app\Helpers\*.*
-copy ..\Brapci3.0\app\Helpers\sisdoc*.* app\Helpers\*.*
+copy ..\Brapci3.1\app\Helpers\boostrap_helper*.* app\Helpers\*.*
+copy ..\Brapci3.1\app\Helpers\sisdoc*.* app\Helpers\*.*
 //copy ..\Brapci3.1\app\Models\Social*.* app\Models\*.*
 
 echo "RDP"

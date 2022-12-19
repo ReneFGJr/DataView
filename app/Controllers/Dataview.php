@@ -27,9 +27,9 @@ class Dataview extends BaseController
         $sx .=  '<div style="height: 1024px;"></div>';
         $sx .=  '</div>';
         $sx .=  '<div class="col-6 p-1 text-end" style="background-color: #FFF;">';
-        $sx .=  "v0.022.08.09";
+        $sx .=  "v0.22.11.17<hr>";
 
-        $sx .= $txt;
+        $sx .= ' '.$txt;
 
         $sx .=  '</div>';
         $sx .=  '</div>';
@@ -42,6 +42,23 @@ class Dataview extends BaseController
         {
             $sx = $this->content('ONLINE');
             return $sx;
+        }
+
+    function open()
+        {
+        $sx = '';
+        $OPEN = new \App\Models\Forms\DOI();
+        $Codebook = new \App\Models\Preview\Codebook();
+
+        $url = get("url");
+        $doi = get("doi");
+        if ((substr($url,0,4) == 'http') and ($doi != ''))
+            {
+                $sx .= $Codebook->show($url,$doi);
+            } else {
+                $sx .= $this->content($OPEN->form());
+            }
+        return $sx;
         }
 
     function clear()
