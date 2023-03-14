@@ -12,6 +12,7 @@
 namespace CodeIgniter\Debug\Toolbar\Collectors;
 
 use CodeIgniter\Database\Query;
+use CodeIgniter\I18n\Time;
 
 /**
  * Collector for the Database tab of the Debug Toolbar.
@@ -57,7 +58,7 @@ class Database extends BaseCollector
      * The query instances that have been collected
      * through the DBQuery Event.
      *
-     * @var Query[]
+     * @var array
      */
     protected static $queries = [];
 
@@ -66,7 +67,7 @@ class Database extends BaseCollector
      */
     public function __construct()
     {
-        $this->connections = \Config\Database::getConnections();
+        $this->getConnections();
     }
 
     /**
@@ -83,7 +84,22 @@ class Database extends BaseCollector
         $max = $config->maxQueries ?: 100;
 
         if (count(static::$queries) < $max) {
-            static::$queries[] = $query;
+            $queryString = $query->getQuery();
+
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+
+            if (! is_cli()) {
+                // when called in the browser, the first two trace arrays
+                // are from the DB event trigger, which are unneeded
+                $backtrace = array_slice($backtrace, 2);
+            }
+
+            static::$queries[] = [
+                'query'     => $query,
+                'string'    => $queryString,
+                'duplicate' => in_array($queryString, array_column(static::$queries, 'string', null), true),
+                'trace'     => $backtrace,
+            ];
         }
     }
 
@@ -110,8 +126,9 @@ class Database extends BaseCollector
             $data[] = [
                 'name'      => 'Query',
                 'component' => 'Database',
-                'start'     => $query->getStartTime(true),
-                'duration'  => $query->getDuration(),
+                'start'     => $query['query']->getStartTime(true),
+                'duration'  => $query['query']->getDuration(),
+                'query'     => $query['query']->debugToolbarDisplay(),
             ];
         }
 
@@ -123,10 +140,53 @@ class Database extends BaseCollector
      */
     public function display(): array
     {
-        $data['queries'] = array_map(static function (Query $query) {
+        $data            = [];
+        $data['queries'] = array_map(static function (array $query) {
+            $isDuplicate = $query['duplicate'] === true;
+
+            $firstNonSystemLine = '';
+
+            foreach ($query['trace'] as $index => &$line) {
+                // simplify file and line
+                if (isset($line['file'])) {
+                    $line['file'] = clean_path($line['file']) . ':' . $line['line'];
+                    unset($line['line']);
+                } else {
+                    $line['file'] = '[internal function]';
+                }
+
+                // find the first trace line that does not originate from `system/`
+                if ($firstNonSystemLine === '' && strpos($line['file'], 'SYSTEMPATH') === false) {
+                    $firstNonSystemLine = $line['file'];
+                }
+
+                // simplify function call
+                if (isset($line['class'])) {
+                    $line['function'] = $line['class'] . $line['type'] . $line['function'];
+                    unset($line['class'], $line['type']);
+                }
+
+                if (strrpos($line['function'], '{closure}') === false) {
+                    $line['function'] .= '()';
+                }
+
+                $line['function'] = str_repeat(chr(0xC2) . chr(0xA0), 8) . $line['function'];
+
+                // add index numbering padded with nonbreaking space
+                $indexPadded = str_pad(sprintf('%d', $index + 1), 3, ' ', STR_PAD_LEFT);
+                $indexPadded = preg_replace('/\s/', chr(0xC2) . chr(0xA0), $indexPadded);
+
+                $line['index'] = $indexPadded . str_repeat(chr(0xC2) . chr(0xA0), 4);
+            }
+
             return [
-                'duration' => ((float) $query->getDuration(5) * 1000) . ' ms',
-                'sql'      => $query->debugToolbarDisplay(),
+                'hover'      => $isDuplicate ? 'This query was called more than once.' : '',
+                'class'      => $isDuplicate ? 'duplicate' : '',
+                'duration'   => ((float) $query['query']->getDuration(5) * 1000) . ' ms',
+                'sql'        => $query['query']->debugToolbarDisplay(),
+                'trace'      => $query['trace'],
+                'trace-file' => $firstNonSystemLine,
+                'qid'        => md5($query['query'] . Time::now()->format('0.u00 U')),
             ];
         }, static::$queries);
 
@@ -148,8 +208,21 @@ class Database extends BaseCollector
      */
     public function getTitleDetails(): string
     {
-        return '(' . count(static::$queries) . ' Queries across ' . ($countConnection = count($this->connections)) . ' Connection' .
-                ($countConnection > 1 ? 's' : '') . ')';
+        $this->getConnections();
+
+        $queryCount      = count(static::$queries);
+        $uniqueCount     = count(array_filter(static::$queries, static fn ($query) => $query['duplicate'] === false));
+        $connectionCount = count($this->connections);
+
+        return sprintf(
+            '(%d total Quer%s, %d %s unique across %d Connection%s)',
+            $queryCount,
+            $queryCount > 1 ? 'ies' : 'y',
+            $uniqueCount,
+            $uniqueCount > 1 ? 'of them' : '',
+            $connectionCount,
+            $connectionCount > 1 ? 's' : ''
+        );
     }
 
     /**
@@ -168,5 +241,13 @@ class Database extends BaseCollector
     public function icon(): string
     {
         return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADMSURBVEhLY6A3YExLSwsA4nIycQDIDIhRWEBqamo/UNF/SjDQjF6ocZgAKPkRiFeEhoYyQ4WIBiA9QAuWAPEHqBAmgLqgHcolGQD1V4DMgHIxwbCxYD+QBqcKINseKo6eWrBioPrtQBq/BcgY5ht0cUIYbBg2AJKkRxCNWkDQgtFUNJwtABr+F6igE8olGQD114HMgHIxAVDyAhA/AlpSA8RYUwoeXAPVex5qHCbIyMgwBCkAuQJIY00huDBUz/mUlBQDqHGjgBjAwAAACexpph6oHSQAAAAASUVORK5CYII=';
+    }
+
+    /**
+     * Gets the connections from the database config
+     */
+    private function getConnections()
+    {
+        $this->connections = \Config\Database::getConnections();
     }
 }

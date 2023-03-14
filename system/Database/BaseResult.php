@@ -14,7 +14,10 @@ namespace CodeIgniter\Database;
 use CodeIgniter\Entity\Entity;
 
 /**
- * Class BaseResult
+ * @template TConnection of object|resource
+ * @template TResult of object|resource
+ *
+ * @implements ResultInterface<TConnection, TResult>
  */
 abstract class BaseResult implements ResultInterface
 {
@@ -22,13 +25,15 @@ abstract class BaseResult implements ResultInterface
      * Connection ID
      *
      * @var object|resource
+     * @phpstan-var TConnection
      */
     public $connID;
 
     /**
      * Result ID
      *
-     * @var bool|object|resource
+     * @var false|object|resource
+     * @phpstan-var false|TResult
      */
     public $resultID;
 
@@ -79,6 +84,8 @@ abstract class BaseResult implements ResultInterface
      *
      * @param object|resource $connID
      * @param object|resource $resultID
+     * @phpstan-param TConnection $connID
+     * @phpstan-param TResult     $resultID
      */
     public function __construct(&$connID, &$resultID)
     {
@@ -117,7 +124,7 @@ abstract class BaseResult implements ResultInterface
             return $this->customResultObject[$className];
         }
 
-        if (is_bool($this->resultID) || ! $this->resultID) {
+        if (! $this->isValidResultId()) {
             return [];
         }
 
@@ -154,7 +161,6 @@ abstract class BaseResult implements ResultInterface
             $this->customResultObject[$className][] = $row;
         }
 
-        // @phpstan-ignore-next-line
         return $this->customResultObject[$className];
     }
 
@@ -172,7 +178,7 @@ abstract class BaseResult implements ResultInterface
         // In the event that query caching is on, the result_id variable
         // will not be a valid resource so we'll simply return an empty
         // array.
-        if (is_bool($this->resultID) || ! $this->resultID) {
+        if (! $this->isValidResultId()) {
             return [];
         }
 
@@ -209,7 +215,7 @@ abstract class BaseResult implements ResultInterface
         // In the event that query caching is on, the result_id variable
         // will not be a valid resource so we'll simply return an empty
         // array.
-        if (is_bool($this->resultID) || ! $this->resultID) {
+        if (! $this->isValidResultId()) {
             return [];
         }
 
@@ -233,7 +239,6 @@ abstract class BaseResult implements ResultInterface
             $this->resultObject[] = $row;
         }
 
-        // @phpstan-ignore-next-line
         return $this->resultObject;
     }
 
@@ -463,6 +468,11 @@ abstract class BaseResult implements ResultInterface
         }
 
         return $this->numRows = count($this->getResultArray());
+    }
+
+    private function isValidResultId(): bool
+    {
+        return is_resource($this->resultID) || is_object($this->resultID);
     }
 
     /**

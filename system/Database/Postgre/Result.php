@@ -13,10 +13,14 @@ namespace CodeIgniter\Database\Postgre;
 
 use CodeIgniter\Database\BaseResult;
 use CodeIgniter\Entity\Entity;
+use PgSql\Connection as PgSqlConnection;
+use PgSql\Result as PgSqlResult;
 use stdClass;
 
 /**
  * Result for Postgre
+ *
+ * @extends BaseResult<PgSqlConnection, PgSqlResult>
  */
 class Result extends BaseResult
 {
@@ -68,7 +72,7 @@ class Result extends BaseResult
      */
     public function freeResult()
     {
-        if (is_resource($this->resultID)) {
+        if ($this->resultID !== false) {
             pg_free_result($this->resultID);
             $this->resultID = false;
         }

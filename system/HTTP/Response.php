@@ -16,10 +16,10 @@ use CodeIgniter\Cookie\CookieStore;
 use CodeIgniter\Cookie\Exceptions\CookieException;
 use CodeIgniter\HTTP\Exceptions\HTTPException;
 use Config\App;
-use Config\ContentSecurityPolicy as CSPConfig;
+use Config\Services;
 
 /**
- * Representation of an outgoing, getServer-side response.
+ * Representation of an outgoing, server-side response.
  *
  * Per the HTTP specification, this interface includes properties for
  * each of the following:
@@ -29,7 +29,7 @@ use Config\ContentSecurityPolicy as CSPConfig;
  * - Headers
  * - Message body
  */
-class Response extends Message implements MessageInterface, ResponseInterface
+class Response extends Message implements ResponseInterface
 {
     use ResponseTrait;
 
@@ -79,15 +79,15 @@ class Response extends Message implements MessageInterface, ResponseInterface
         410 => 'Gone',
         411 => 'Length Required',
         412 => 'Precondition Failed',
-        413 => 'Request Entity Too Large',
-        414 => 'Request-URI Too Long',
+        413 => 'Content Too Large', // https://www.iana.org/assignments/http-status-codes/http-status-codes.xml
+        414 => 'URI Too Long', // https://www.iana.org/assignments/http-status-codes/http-status-codes.xml
         415 => 'Unsupported Media Type',
         416 => 'Requested Range Not Satisfiable',
         417 => 'Expectation Failed',
         418 => "I'm a teapot", // April's Fools joke; http://www.ietf.org/rfc/rfc2324.txt
         // 419 (Authentication Timeout) is a non-standard status code with unknown origin
         421 => 'Misdirected Request', // http://www.iana.org/go/rfc7540 Section 9.1.2
-        422 => 'Unprocessable Entity', // http://www.iana.org/go/rfc4918
+        422 => 'Unprocessable Content', // https://www.iana.org/assignments/http-status-codes/http-status-codes.xml
         423 => 'Locked', // http://www.iana.org/go/rfc4918
         424 => 'Failed Dependency', // http://www.iana.org/go/rfc4918
         425 => 'Too Early', // https://datatracker.ietf.org/doc/draft-ietf-httpbis-replay/
@@ -152,7 +152,7 @@ class Response extends Message implements MessageInterface, ResponseInterface
         $this->noCache();
 
         // We need CSP object even if not enabled to avoid calls to non existing methods
-        $this->CSP = new ContentSecurityPolicy(new CSPConfig());
+        $this->CSP = Services::csp();
 
         $this->CSPEnabled = $config->CSPEnabled;
 
@@ -165,7 +165,7 @@ class Response extends Message implements MessageInterface, ResponseInterface
         $this->cookieHTTPOnly = $config->cookieHTTPOnly;
         $this->cookieSameSite = $config->cookieSameSite ?? Cookie::SAMESITE_LAX;
 
-        $config->cookieSameSite = $config->cookieSameSite ?? Cookie::SAMESITE_LAX;
+        $config->cookieSameSite ??= Cookie::SAMESITE_LAX;
 
         if (! in_array(strtolower($config->cookieSameSite ?: Cookie::SAMESITE_LAX), Cookie::ALLOWED_SAMESITE_VALUES, true)) {
             throw CookieException::forInvalidSameSite($config->cookieSameSite);
@@ -188,10 +188,13 @@ class Response extends Message implements MessageInterface, ResponseInterface
 
     /**
      * Turns "pretend" mode on or off to aid in testing.
+     *
      * Note that this is not a part of the interface so
      * should not be relied on outside of internal testing.
      *
      * @return $this
+     *
+     * @testTag only available to test code
      */
     public function pretend(bool $pretend = true)
     {
@@ -203,7 +206,7 @@ class Response extends Message implements MessageInterface, ResponseInterface
     /**
      * Gets the response status code.
      *
-     * The status code is a 3-digit integer result code of the getServer's attempt
+     * The status code is a 3-digit integer result code of the server's attempt
      * to understand and satisfy the request.
      *
      * @return int Status code.
@@ -222,6 +225,7 @@ class Response extends Message implements MessageInterface, ResponseInterface
      *
      * @see http://tools.ietf.org/html/rfc7231#section-6
      * @see http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
+     *
      * @deprecated Use getReasonPhrase()
      *
      * @codeCoverageIgnore

@@ -13,15 +13,13 @@ namespace CodeIgniter\HTTP;
 
 use CodeIgniter\HTTP\Exceptions\HTTPException;
 use Config\App;
+use Config\CURLRequest as ConfigCURLRequest;
 use InvalidArgumentException;
 
 /**
- * Class OutgoingRequest
- *
- * A lightweight HTTP client for sending synchronous HTTP requests
- * via cURL.
+ * A lightweight HTTP client for sending synchronous HTTP requests via cURL.
  */
-class CURLRequest extends Request
+class CURLRequest extends OutgoingRequest
 {
     /**
      * The response object associated with this request
@@ -42,7 +40,14 @@ class CURLRequest extends Request
      *
      * @var array
      */
-    protected $config = [
+    protected $config;
+
+    /**
+     * The default setting values
+     *
+     * @var array
+     */
+    protected $defaultConfig = [
         'timeout'         => 0.0,
         'connect_timeout' => 150,
         'debug'           => false,
@@ -73,28 +78,42 @@ class CURLRequest extends Request
     protected $delay = 0.0;
 
     /**
+     * The default options from the constructor. Applied to all requests.
+     */
+    private array $defaultOptions;
+
+    /**
+     * Whether share options between requests or not.
+     *
+     * If true, all the options won't be reset between requests.
+     * It may cause an error request with unnecessary headers.
+     */
+    private bool $shareOptions;
+
+    /**
      * Takes an array of options to set the following possible class properties:
      *
      *  - baseURI
      *  - timeout
      *  - any other request options to use as defaults.
-     *
-     * @param ResponseInterface $response
      */
     public function __construct(App $config, URI $uri, ?ResponseInterface $response = null, array $options = [])
     {
         if (! function_exists('curl_version')) {
-            // we won't see this during travis-CI
-            // @codeCoverageIgnoreStart
-            throw HTTPException::forMissingCurl();
-            // @codeCoverageIgnoreEnd
+            throw HTTPException::forMissingCurl(); // @codeCoverageIgnore
         }
 
-        parent::__construct($config);
+        parent::__construct('GET', $uri);
 
-        $this->response = $response;
-        $this->baseURI  = $uri->useRawQueryString();
+        $this->response       = $response;
+        $this->baseURI        = $uri->useRawQueryString();
+        $this->defaultOptions = $options;
 
+        /** @var ConfigCURLRequest|null $configCURLRequest */
+        $configCURLRequest  = config('CURLRequest');
+        $this->shareOptions = $configCURLRequest->shareOptions ?? true;
+
+        $this->config = $this->defaultConfig;
         $this->parseOptions($options);
     }
 
@@ -110,11 +129,34 @@ class CURLRequest extends Request
 
         $url = $this->prepareURL($url);
 
-        $method = filter_var($method, FILTER_SANITIZE_STRING);
+        $method = esc(strip_tags($method));
 
         $this->send($method, $url);
 
+        if ($this->shareOptions === false) {
+            $this->resetOptions();
+        }
+
         return $this->response;
+    }
+
+    /**
+     * Reset all options to default.
+     */
+    protected function resetOptions()
+    {
+        // Reset headers
+        $this->headers   = [];
+        $this->headerMap = [];
+
+        // Reset body
+        $this->body = null;
+
+        // Reset configs
+        $this->config = $this->defaultConfig;
+
+        // Set the default options for next request
+        $this->parseOptions($this->defaultOptions);
     }
 
     /**
@@ -249,6 +291,11 @@ class CURLRequest extends Request
             unset($options['delay']);
         }
 
+        if (array_key_exists('body', $options)) {
+            $this->setBody($options['body']);
+            unset($options['body']);
+        }
+
         foreach ($options as $key => $value) {
             $this->config[$key] = $value;
         }
@@ -268,7 +315,13 @@ class CURLRequest extends Request
         $uri = $this->baseURI->resolveRelativeURI($url);
 
         // Create the string instead of casting to prevent baseURL muddling
-        return URI::createURIString($uri->getScheme(), $uri->getAuthority(), $uri->getPath(), $uri->getQuery(), $uri->getFragment());
+        return URI::createURIString(
+            $uri->getScheme(),
+            $uri->getAuthority(),
+            $uri->getPath(),
+            $uri->getQuery(),
+            $uri->getFragment()
+        );
     }
 
     /**
@@ -313,7 +366,7 @@ class CURLRequest extends Request
 
         // Do we need to delay this request?
         if ($this->delay > 0) {
-            sleep($this->delay); // @phpstan-ignore-line
+            usleep((int) $this->delay * 1_000_000);
         }
 
         $output = $this->sendRequest($curlOptions);
@@ -350,27 +403,17 @@ class CURLRequest extends Request
     }
 
     /**
-     * Takes all headers current part of this request and adds them
-     * to the cURL request.
+     * Adds $this->headers to the cURL request.
      */
     protected function applyRequestHeaders(array $curlOptions = []): array
     {
         if (empty($this->headers)) {
-            $this->populateHeaders();
-            // Otherwise, it will corrupt the request
-            $this->removeHeader('Host');
-            $this->removeHeader('Accept-Encoding');
-        }
-
-        $headers = $this->headers();
-
-        if (empty($headers)) {
             return $curlOptions;
         }
 
         $set = [];
 
-        foreach (array_keys($headers) as $name) {
+        foreach (array_keys($this->headers) as $name) {
             $set[] = $name . ': ' . $this->getHeaderLine($name);
         }
 
@@ -389,7 +432,7 @@ class CURLRequest extends Request
         $this->method                       = $method;
         $curlOptions[CURLOPT_CUSTOMREQUEST] = $method;
 
-        $size = strlen($this->body);
+        $size = strlen($this->body ?? '');
 
         // Have content?
         if ($size > 0) {
@@ -440,7 +483,7 @@ class CURLRequest extends Request
                 }
 
                 if (isset($matches[2])) {
-                    $this->response->setStatusCode($matches[2], $matches[3] ?? null);
+                    $this->response->setStatusCode((int) $matches[2], $matches[3] ?? null);
                 }
             }
         }
@@ -449,9 +492,9 @@ class CURLRequest extends Request
     /**
      * Set CURL options
      *
-     * @throws InvalidArgumentException
-     *
      * @return array
+     *
+     * @throws InvalidArgumentException
      */
     protected function setCURLOptions(array $curlOptions = [], array $config = [])
     {
@@ -585,6 +628,8 @@ class CURLRequest extends Request
                 $curlOptions[CURLOPT_HTTP_VERSION] = CURL_HTTP_VERSION_1_0;
             } elseif ($config['version'] === 1.1) {
                 $curlOptions[CURLOPT_HTTP_VERSION] = CURL_HTTP_VERSION_1_1;
+            } elseif ($config['version'] === 2.0) {
+                $curlOptions[CURLOPT_HTTP_VERSION] = CURL_HTTP_VERSION_2_0;
             }
         }
 

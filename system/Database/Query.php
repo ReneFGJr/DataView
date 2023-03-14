@@ -24,9 +24,16 @@ class Query implements QueryInterface
     protected $originalQueryString;
 
     /**
+     * The query string if table prefix has been swapped.
+     *
+     * @var string|null
+     */
+    protected $swappedQueryString;
+
+    /**
      * The final query string after binding, etc.
      *
-     * @var string
+     * @var string|null
      */
     protected $finalQueryString;
 
@@ -84,7 +91,7 @@ class Query implements QueryInterface
      */
     public $db;
 
-    public function __construct(ConnectionInterface &$db)
+    public function __construct(ConnectionInterface $db)
     {
         $this->db = $db;
     }
@@ -99,6 +106,7 @@ class Query implements QueryInterface
     public function setQuery(string $sql, $binds = null, bool $setEscape = true)
     {
         $this->originalQueryString = $sql;
+        unset($this->swappedQueryString);
 
         if ($binds !== null) {
             if (! is_array($binds)) {
@@ -115,6 +123,8 @@ class Query implements QueryInterface
             }
             $this->binds = $binds;
         }
+
+        unset($this->finalQueryString);
 
         return $this;
     }
@@ -134,6 +144,8 @@ class Query implements QueryInterface
 
         $this->binds = $binds;
 
+        unset($this->finalQueryString);
+
         return $this;
     }
 
@@ -144,10 +156,8 @@ class Query implements QueryInterface
     public function getQuery(): string
     {
         if (empty($this->finalQueryString)) {
-            $this->finalQueryString = $this->originalQueryString;
+            $this->compileBinds();
         }
-
-        $this->compileBinds();
 
         return $this->finalQueryString;
     }
@@ -251,9 +261,14 @@ class Query implements QueryInterface
      */
     public function swapPrefix(string $orig, string $swap)
     {
-        $sql = empty($this->finalQueryString) ? $this->originalQueryString : $this->finalQueryString;
+        $sql = $this->swappedQueryString ?? $this->originalQueryString;
 
-        $this->finalQueryString = preg_replace('/(\W)' . $orig . '(\S+?)/', '\\1' . $swap . '\\2', $sql);
+        $from = '/(\W)' . $orig . '(\S)/';
+        $to   = '\\1' . $swap . '\\2';
+
+        $this->swappedQueryString = preg_replace($from, $to, $sql);
+
+        unset($this->finalQueryString);
 
         return $this;
     }
@@ -267,41 +282,33 @@ class Query implements QueryInterface
     }
 
     /**
-     * Escapes and inserts any binds into the finalQueryString object.
+     * Escapes and inserts any binds into the finalQueryString property.
      *
-     * @see https://regex101.com/r/EUEhay/4
+     * @see https://regex101.com/r/EUEhay/5
      */
     protected function compileBinds()
     {
-        $sql = $this->finalQueryString;
+        $sql   = $this->swappedQueryString ?? $this->originalQueryString;
+        $binds = $this->binds;
 
-        $hasNamedBinds = preg_match('/:((?!=).+):/', $sql) === 1;
+        if (empty($binds)) {
+            $this->finalQueryString = $sql;
 
-        if (empty($this->binds)
-            || empty($this->bindMarker)
-            || (! $hasNamedBinds && strpos($sql, $this->bindMarker) === false)
-        ) {
             return;
         }
 
-        if (! is_array($this->binds)) {
-            $binds     = [$this->binds];
-            $bindCount = 1;
-        } else {
-            $binds     = $this->binds;
+        if (is_int(array_key_first($binds))) {
             $bindCount = count($binds);
-        }
+            $ml        = strlen($this->bindMarker);
 
-        // Reverse the binds so that duplicate named binds
-        // will be processed prior to the original binds.
-        if (! is_numeric(key(array_slice($binds, 0, 1)))) {
+            $this->finalQueryString = $this->matchSimpleBinds($sql, $binds, $bindCount, $ml);
+        } else {
+            // Reverse the binds so that duplicate named binds
+            // will be processed prior to the original binds.
             $binds = array_reverse($binds);
+
+            $this->finalQueryString = $this->matchNamedBinds($sql, $binds);
         }
-
-        $ml  = strlen($this->bindMarker);
-        $sql = $hasNamedBinds ? $this->matchNamedBinds($sql, $binds) : $this->matchSimpleBinds($sql, $binds, $bindCount, $ml);
-
-        $this->finalQueryString = $sql;
     }
 
     /**
@@ -365,50 +372,51 @@ class Query implements QueryInterface
     {
         // Key words we want bolded
         static $highlight = [
-            'SELECT',
+            'AND',
+            'AS',
+            'ASC',
+            'AVG',
+            'BY',
+            'COUNT',
+            'DESC',
             'DISTINCT',
             'FROM',
-            'WHERE',
-            'AND',
-            'LEFT&nbsp;JOIN',
-            'RIGHT&nbsp;JOIN',
-            'JOIN',
-            'ORDER&nbsp;BY',
-            'GROUP&nbsp;BY',
-            'LIMIT',
+            'GROUP',
+            'HAVING',
+            'IN',
+            'INNER',
             'INSERT',
             'INTO',
-            'VALUES',
-            'UPDATE',
-            'OR&nbsp;',
-            'HAVING',
-            'OFFSET',
-            'NOT&nbsp;IN',
-            'IN',
+            'IS',
+            'JOIN',
+            'LEFT',
             'LIKE',
-            'NOT&nbsp;LIKE',
-            'COUNT',
+            'LIMIT',
             'MAX',
             'MIN',
+            'NOT',
+            'NULL',
+            'OFFSET',
             'ON',
-            'AS',
-            'AVG',
+            'OR',
+            'ORDER',
+            'RIGHT',
+            'SELECT',
             'SUM',
-            '(',
-            ')',
+            'UPDATE',
+            'VALUES',
+            'WHERE',
         ];
 
-        if (empty($this->finalQueryString)) {
-            $this->compileBinds(); // @codeCoverageIgnore
-        }
+        $sql = esc($this->getQuery());
 
-        $sql = $this->finalQueryString;
+        /**
+         * @see https://stackoverflow.com/a/20767160
+         * @see https://regex101.com/r/hUlrGN/4
+         */
+        $search = '/\b(?:' . implode('|', $highlight) . ')\b(?![^(&#039;)]*&#039;(?:(?:[^(&#039;)]*&#039;){2})*[^(&#039;)]*$)/';
 
-        foreach ($highlight as $term) {
-            $sql = str_replace($term, '<strong>' . $term . '</strong>', $sql);
-        }
-
-        return $sql;
+        return preg_replace_callback($search, static fn ($matches) => '<strong>' . str_replace(' ', '&nbsp;', $matches[0]) . '</strong>', $sql);
     }
 
     /**

@@ -14,6 +14,7 @@ namespace CodeIgniter\Database\SQLSRV;
 use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\Database\Exceptions\DatabaseException;
 use CodeIgniter\Database\Exceptions\DataException;
+use CodeIgniter\Database\RawSql;
 use CodeIgniter\Database\ResultInterface;
 
 /**
@@ -68,7 +69,7 @@ class Builder extends BaseBuilder
         $from = [];
 
         foreach ($this->QBFrom as $value) {
-            $from[] = $this->getFullName($value);
+            $from[] = strpos($value, '(SELECT') === 0 ? $value : $this->getFullName($value);
         }
 
         return implode(', ', $from);
@@ -88,9 +89,11 @@ class Builder extends BaseBuilder
     /**
      * Generates the JOIN portion of the query
      *
+     * @param RawSql|string $cond
+     *
      * @return $this
      */
-    public function join(string $table, string $cond, string $type = '', ?bool $escape = null)
+    public function join(string $table, $cond, string $type = '', ?bool $escape = null)
     {
         if ($type !== '') {
             $type = strtoupper(trim($type));
@@ -171,6 +174,32 @@ class Builder extends BaseBuilder
     }
 
     /**
+     * Insert batch statement
+     *
+     * Generates a platform-specific insert string from the supplied data.
+     */
+    protected function _insertBatch(string $table, array $keys, array $values): string
+    {
+        $sql = $this->QBOptions['sql'] ?? '';
+
+        // if this is the first iteration of batch then we need to build skeleton sql
+        if ($sql === '') {
+            $sql = 'INSERT ' . $this->compileIgnore('insert') . 'INTO ' . $this->getFullName($table)
+                . ' (' . implode(', ', $keys) . ")\n{:_table_:}";
+
+            $this->QBOptions['sql'] = $sql;
+        }
+
+        if (isset($this->QBOptions['setQueryAsData'])) {
+            $data = $this->QBOptions['setQueryAsData'];
+        } else {
+            $data = 'VALUES ' . implode(', ', $this->formatValues($values));
+        }
+
+        return str_replace('{:_table_:}', $data, $sql);
+    }
+
+    /**
      * Generates a platform-specific update string from the supplied data
      */
     protected function _update(string $table, array $values): string
@@ -183,8 +212,11 @@ class Builder extends BaseBuilder
 
         $fullTableName = $this->getFullName($table);
 
-        $statement = 'UPDATE ' . (empty($this->QBLimit) ? '' : 'TOP(' . $this->QBLimit . ') ') . $fullTableName . ' SET '
-            . implode(', ', $valstr) . $this->compileWhereHaving('QBWhere') . $this->compileOrderBy();
+        $statement = sprintf('UPDATE %s%s SET ', empty($this->QBLimit) ? '' : 'TOP(' . $this->QBLimit . ') ', $fullTableName);
+
+        $statement .= implode(', ', $valstr)
+            . $this->compileWhereHaving('QBWhere')
+            . $this->compileOrderBy();
 
         return $this->keyPermission ? $this->addIdentity($fullTableName, $statement) : $statement;
     }
@@ -203,9 +235,16 @@ class Builder extends BaseBuilder
         } else {
             $values = [$column => "{$column} + {$value}"];
         }
+
         $sql = $this->_update($this->QBFrom[0], $values);
 
-        return $this->db->query($sql, $this->binds, false);
+        if (! $this->testMode) {
+            $this->resetWrite();
+
+            return $this->db->query($sql, $this->binds, false);
+        }
+
+        return true;
     }
 
     /**
@@ -222,9 +261,16 @@ class Builder extends BaseBuilder
         } else {
             $values = [$column => "{$column} + {$value}"];
         }
+
         $sql = $this->_update($this->QBFrom[0], $values);
 
-        return $this->db->query($sql, $this->binds, false);
+        if (! $this->testMode) {
+            $this->resetWrite();
+
+            return $this->db->query($sql, $this->binds, false);
+        }
+
+        return true;
     }
 
     /**
@@ -276,9 +322,9 @@ class Builder extends BaseBuilder
     /**
      * Compiles a replace into string and runs the query
      *
-     * @throws DatabaseException
-     *
      * @return mixed
+     *
+     * @throws DatabaseException
      */
     public function replace(?array $set = null)
     {
@@ -287,7 +333,7 @@ class Builder extends BaseBuilder
         }
 
         if (empty($this->QBSet)) {
-            if (CI_DEBUG) {
+            if ($this->db->DBDebug) {
                 throw new DatabaseException('You must use the "set" method to update an entry.');
             }
 
@@ -304,9 +350,10 @@ class Builder extends BaseBuilder
             return $sql;
         }
 
-        $this->db->simpleQuery('SET IDENTITY_INSERT ' . $this->db->escapeIdentifiers($table) . ' ON');
+        $this->db->simpleQuery('SET IDENTITY_INSERT ' . $this->getFullName($table) . ' ON');
+
         $result = $this->db->query($sql, $this->binds, false);
-        $this->db->simpleQuery('SET IDENTITY_INSERT ' . $this->db->escapeIdentifiers($table) . ' OFF');
+        $this->db->simpleQuery('SET IDENTITY_INSERT ' . $this->getFullName($table) . ' OFF');
 
         return $result;
     }
@@ -333,9 +380,7 @@ class Builder extends BaseBuilder
         }
 
         // Get the unique field names
-        $escKeyFields = array_map(function (string $field): string {
-            return $this->db->protectIdentifiers($field);
-        }, array_values(array_unique($keyFields)));
+        $escKeyFields = array_map(fn (string $field): string => $this->db->protectIdentifiers($field), array_values(array_unique($keyFields)));
 
         // Get the binds
         $binds = $this->binds;
@@ -348,9 +393,9 @@ class Builder extends BaseBuilder
         $bingo  = [];
 
         foreach ($common as $v) {
-            $k = array_search($v, $escKeyFields, true);
+            $k = array_search($v, $keys, true);
 
-            $bingo[$keyFields[$k]] = $binds[trim($values[$k], ':')];
+            $bingo[$keys[$k]] = $binds[trim($values[$k], ':')];
         }
 
         // Querying existing data
@@ -411,6 +456,40 @@ class Builder extends BaseBuilder
     }
 
     /**
+     * "Count All" query
+     *
+     * Generates a platform-specific query string that counts all records in
+     * the particular table
+     *
+     * @param bool $reset Are we want to clear query builder values?
+     *
+     * @return int|string when $test = true
+     */
+    public function countAll(bool $reset = true)
+    {
+        $table = $this->QBFrom[0];
+
+        $sql = $this->countString . $this->db->escapeIdentifiers('numrows') . ' FROM ' . $this->getFullName($table);
+
+        if ($this->testMode) {
+            return $sql;
+        }
+
+        $query = $this->db->query($sql, null, false);
+        if (empty($query->getResult())) {
+            return 0;
+        }
+
+        $query = $query->getRow();
+
+        if ($reset === true) {
+            $this->resetSelect();
+        }
+
+        return (int) $query->numrows;
+    }
+
+    /**
      * Delete statement
      */
     protected function _delete(string $table): string
@@ -423,9 +502,9 @@ class Builder extends BaseBuilder
      *
      * @param mixed $where
      *
-     * @throws DatabaseException
-     *
      * @return mixed
+     *
+     * @throws DatabaseException
      */
     public function delete($where = '', ?int $limit = null, bool $resetData = true)
     {
@@ -436,7 +515,7 @@ class Builder extends BaseBuilder
         }
 
         if (empty($this->QBWhere)) {
-            if (CI_DEBUG) {
+            if ($this->db->DBDebug) {
                 throw new DatabaseException('Deletes are not allowed unless they contain a "where" or "like" clause.');
             }
 
@@ -504,15 +583,16 @@ class Builder extends BaseBuilder
         }
 
         $sql .= $this->compileWhereHaving('QBWhere')
-                . $this->compileGroupBy()
-                . $this->compileWhereHaving('QBHaving')
-                . $this->compileOrderBy(); // ORDER BY
+            . $this->compileGroupBy()
+            . $this->compileWhereHaving('QBHaving')
+            . $this->compileOrderBy(); // ORDER BY
+
         // LIMIT
         if ($this->QBLimit) {
             $sql = $this->_limit($sql . "\n");
         }
 
-        return $sql;
+        return $this->unionInjection($sql);
     }
 
     /**
@@ -537,5 +617,159 @@ class Builder extends BaseBuilder
         }
 
         return $result;
+    }
+
+    /**
+     * Generates a platform-specific upsertBatch string from the supplied data
+     *
+     * @throws DatabaseException
+     */
+    protected function _upsertBatch(string $table, array $keys, array $values): string
+    {
+        $sql = $this->QBOptions['sql'] ?? '';
+
+        // if this is the first iteration of batch then we need to build skeleton sql
+        if ($sql === '') {
+            $fullTableName = $this->getFullName($table);
+
+            $constraints = $this->QBOptions['constraints'] ?? [];
+
+            $tableIdentity = $this->QBOptions['tableIdentity'] ?? '';
+            $sql           = "SELECT name from syscolumns where id = Object_ID('" . $table . "') and colstat = 1";
+            if (($query = $this->db->query($sql)) === false) {
+                throw new DatabaseException('Failed to get table identity');
+            }
+            $query = $query->getResultObject();
+
+            foreach ($query as $row) {
+                $tableIdentity = '"' . $row->name . '"';
+            }
+            $this->QBOptions['tableIdentity'] = $tableIdentity;
+
+            $identityInFields = in_array($tableIdentity, $keys, true);
+
+            $fieldNames = array_map(static fn ($columnName) => trim($columnName, '"'), $keys);
+
+            if (empty($constraints)) {
+                $tableIndexes = $this->db->getIndexData($table);
+
+                $uniqueIndexes = array_filter($tableIndexes, static function ($index) use ($fieldNames) {
+                    $hasAllFields = count(array_intersect($index->fields, $fieldNames)) === count($index->fields);
+
+                    return $index->type === 'PRIMARY' && $hasAllFields;
+                });
+
+                // if no primary found then look for unique - since indexes have no order
+                if (empty($uniqueIndexes)) {
+                    $uniqueIndexes = array_filter($tableIndexes, static function ($index) use ($fieldNames) {
+                        $hasAllFields = count(array_intersect($index->fields, $fieldNames)) === count($index->fields);
+
+                        return $index->type === 'UNIQUE' && $hasAllFields;
+                    });
+                }
+
+                // only take first index
+                foreach ($uniqueIndexes as $index) {
+                    $constraints = $index->fields;
+                    break;
+                }
+
+                $constraints = $this->onConstraint($constraints)->QBOptions['constraints'] ?? [];
+            }
+
+            if (empty($constraints)) {
+                if ($this->db->DBDebug) {
+                    throw new DatabaseException('No constraint found for upsert.');
+                }
+
+                return ''; // @codeCoverageIgnore
+            }
+
+            $alias = $this->QBOptions['alias'] ?? '"_upsert"';
+
+            $updateFields = $this->QBOptions['updateFields'] ?? $this->updateFields($keys, false, $constraints)->QBOptions['updateFields'] ?? [];
+
+            $sql = 'MERGE INTO ' . $fullTableName . "\nUSING (\n";
+
+            $sql .= '{:_table_:}';
+
+            $sql .= ") {$alias} (";
+
+            $sql .= implode(', ', $keys);
+
+            $sql .= ')';
+
+            $sql .= "\nON (";
+
+            $sql .= implode(
+                ' AND ',
+                array_map(
+                    static fn ($key, $value) => (
+                        ($value instanceof RawSql && is_string($key))
+                        ?
+                        $fullTableName . '.' . $key . ' = ' . $value
+                        :
+                        (
+                            $value instanceof RawSql
+                            ?
+                            $value
+                            :
+                            $fullTableName . '.' . $value . ' = ' . $alias . '.' . $value
+                        )
+                    ),
+                    array_keys($constraints),
+                    $constraints
+                )
+            ) . ")\n";
+
+            $sql .= "WHEN MATCHED THEN UPDATE SET\n";
+
+            $sql .= implode(
+                ",\n",
+                array_map(
+                    static fn ($key, $value) => $key . ($value instanceof RawSql ?
+                        ' = ' . $value :
+                    " = {$alias}.{$value}"),
+                    array_keys($updateFields),
+                    $updateFields
+                )
+            );
+
+            $sql .= "\nWHEN NOT MATCHED THEN INSERT (" . implode(', ', $keys) . ")\nVALUES ";
+
+            $sql .= (
+                '(' . implode(
+                    ', ',
+                    array_map(
+                        static fn ($columnName) => $columnName === $tableIdentity
+                    ? "CASE WHEN {$alias}.{$columnName} IS NULL THEN (SELECT "
+                    . 'isnull(IDENT_CURRENT(\'' . $fullTableName . '\')+IDENT_INCR(\''
+                    . $fullTableName . "'),1)) ELSE {$alias}.{$columnName} END"
+                    : "{$alias}.{$columnName}",
+                        $keys
+                    )
+                ) . ');'
+            );
+
+            $sql = $identityInFields ? $this->addIdentity($fullTableName, $sql) : $sql;
+
+            $this->QBOptions['sql'] = $sql;
+        }
+
+        if (isset($this->QBOptions['setQueryAsData'])) {
+            $data = $this->QBOptions['setQueryAsData'];
+        } else {
+            $data = 'VALUES ' . implode(', ', $this->formatValues($values)) . "\n";
+        }
+
+        return str_replace('{:_table_:}', $data, $sql);
+    }
+
+    /**
+     * Gets column names from a select query
+     */
+    protected function fieldsFromQuery(string $sql): array
+    {
+        return $this->db->query('SELECT TOP 1 * FROM (' . $sql . ') _u_')->getFieldNames();
     }
 }
