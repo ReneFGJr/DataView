@@ -221,10 +221,11 @@ class DDI extends Model
 
                     for ($q = 0; $q < count($catg); $q++) {
                         $catgi = (array)$catg[$q];
+                        pre($catgi,false);
                         if (!isset($catgi['labl'])) {
                             $catgi['labl'] = '';
                         }
-                        $catr[$catgi['catValu'] . ' ' . $catgi['labl']] = $catgi['catStat'];
+                        $catr[$catgi['catValu'] . ';' . $catgi['labl']] = $catgi['catStat'];
                     }
                 }
 
@@ -246,6 +247,17 @@ class DDI extends Model
 
                 if (count($dta) > 0)
                 {
+                    $sx .= '<table class="table" style="width: 100%">';
+                    foreach($dta as $cname=>$cvalue)
+                        {
+                            $ccol = explode(';',$cname);
+                            $sx .= '<tr>';
+                            $sx .= '<td>'.$cname[0].'</td>';
+                            $sx .= '<td>' . $cname[1] . '</td>';
+                            $sx .= '<td>' . $cvalue . '</td>';
+                            $sx .= '</tr>';
+                        }
+                    $sx .= '</table>';
                     /*
                     $sx .= '<tr><td colspan=3"><td>'.
                     $this->hichart_pie('div_'.($tot++),$data).
