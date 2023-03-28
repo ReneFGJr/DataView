@@ -40,7 +40,7 @@ class DDI extends Model
     protected $beforeDelete         = [];
     protected $afterDelete          = [];
 
-    function hichart_pie($div='grapho',$data)
+    function hichart_pie($div='grapho',$data=array())
     {
         if (count($data) == 0)
             {
