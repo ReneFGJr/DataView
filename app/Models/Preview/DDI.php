@@ -109,6 +109,13 @@ class DDI extends Model
         */
         ';
 
+        $th = '<tr style="font-size: 0.6em; background: #ddd;">
+            <th>Cat.</th>
+            <th>Descição</th>
+            <th>Valor</th>
+            <th>Perc.</th>
+            </tr>';
+
         $Cache = new \App\Models\IO\Cache();
 
         $SERVER_URL = $_GET['siteUrl'];
@@ -221,7 +228,6 @@ class DDI extends Model
 
                     for ($q = 0; $q < count($catg); $q++) {
                         $catgi = (array)$catg[$q];
-                        pre($catgi,false);
                         if (!isset($catgi['labl'])) {
                             $catgi['labl'] = '';
                         }
@@ -240,53 +246,30 @@ class DDI extends Model
                 }
 
                 /* Show Categories */
-
-                if (count($dta) > 0)
-                {
-                    $sx .= '<table class="table" style="width: 100%">';
-                    foreach($dta as $cname=>$cvalue)
-                        {
-                            $ccol = explode(';',$cname);
-                            $sx .= '<tr>';
-                            $sx .= '<td>'.$cname[0].'</td>';
-                            $sx .= '<td>' . $cname[1] . '</td>';
-                            $sx .= '<td>' . $cvalue . '</td>';
-                            $sx .= '</tr>';
-                        }
-                    $sx .= '</table>';
-                    /*
-                    $sx .= '<tr><td colspan=3"><td>'.
-                    $this->hichart_pie('div_'.($tot++),$data).
-                    '</td></tr>';
-                    */
+                $sc = '';
+                if (count($dta) > 0) {
+                    $sc .= $th;
+                    foreach ($dta as $cname => $cvalue) {
+                        $ccol = explode(';', $cname);
+                        $sc .= '<tr>';
+                        $sc .= '<td width="10%" style="font-size: 0.7em">' . $ccol[0] . '</td>';
+                        $sc .= '<td width="70%" style="font-size: 0.7em">' . $ccol[1] . '</td>';
+                        $sc .= '<td width="20%" class="text-end" style="font-size: 0.7em">' . $cvalue . '</td>';
+                        if ($tot > 0)
+                            {
+                                $sc .= '<td width="20%" class="text-end" style="font-size: 0.8em">' . number_format($cvalue/$tot*100,1,'.',',') . '%</td>';
+                            }
+                        $sc .= '</tr>';
+                    }
+                    $sx .= $sc;
                 }
 
-                /********************************* HIGHCHART */
-                /*
-                $sx .= '<tr><td colspan=3">'.
-                    $this->hichart_pie('div_'.($tot++), $dta).
-                    '</td></tr>'.cr();
-                */
-
-                foreach ($catr as $key => $value) {
-                    $sx .= '<tr>';
-                    $sx .= '<td>';
-                    $sx .= $key;
-                    $sx .= '</td><td class="text-end">';
-                    $sx .= number_format($value, 0, ',', '.');
-                    $sx .= '</td><td class="text-end">';
-                    if ($tot > 0)
-                        {
-                            $sx .= number_format($value / $tot * 100, 1, ',', '.') . '%';
-                        } else {
-                            $sx .= '-';
-                        }
-
-                    $sx .= '</td>';
-                    $sx .= '</tr>';
-                }
-                $sx .= '<tr><td colspan=2 class="text-end"><b>Total</b> ' . number_format($tot, 0, ',', '.') . '</td></tr>';
+                IF ($tot > 0)
+                    {
+                        $sx .= '<tr><td colspan=3 class="text-end" style="font-size: 0.9em"><b>Total</b> <b>' . number_format($tot, 0, ',', '.') . '</b></td></tr>';
+                    }
                 $sx .= '</table>' . cr();
+
 
                 if ($tot > 0) {
                     $svba[$ID] .= $sx;
