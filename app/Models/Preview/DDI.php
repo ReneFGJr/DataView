@@ -193,10 +193,6 @@ class DDI extends Model
                     '</a>' .
                     '</li>';
 
-                    if ($attr['name'] == 'TP_DEPENDENCIA')
-                        {
-                            pre($line2);
-                        }
 
                 if (isset($line['labl'])) {
                     $labl = (string)$line['labl'];
@@ -241,6 +237,13 @@ class DDI extends Model
                     $tot = $tot + $value;
                     $dta[$key] = $value;
                 }
+
+                /* Show Categories */
+                if (count($dta) > 0) {
+                    pre($dta);
+                }
+
+
                 if (count($dta) > 0)
                 {
                     /*
