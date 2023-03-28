@@ -193,6 +193,11 @@ class DDI extends Model
                     '</a>' .
                     '</li>';
 
+                    if ($attr['name'] == 'TP_DEPENDENCIA')
+                        {
+                            pre($line2);
+                        }
+
                 if (isset($line['labl'])) {
                     $labl = (string)$line['labl'];
                     $svba[$ID] .= '<h6>' . $labl . ' <sup>('. $type.')</sup>'.'<br>' .
