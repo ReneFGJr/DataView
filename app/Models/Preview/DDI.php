@@ -240,10 +240,6 @@ class DDI extends Model
                 }
 
                 /* Show Categories */
-                if (count($dta) > 0) {
-                    pre($dta);
-                }
-
 
                 if (count($dta) > 0)
                 {
