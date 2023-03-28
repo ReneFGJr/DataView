@@ -203,8 +203,9 @@ class DDI extends Model
 
                 if (isset($line['labl'])) {
                     $labl = (string)$line['labl'];
-                    $svba[$ID] .= '<h6>' . $labl . ' <sup>('. $type.')</sup>'.'<br>' .
-                        '<i>' . $attr['name'] . '</i> <sup>(' . $ID . ')</sup></h6>';
+                    $svba[$ID] .= '<span class="fw-bold" style="font-size: 1.2em;">' . $labl . '</span>' .
+                        '<br>'.
+                        '<span class="small" style="font-size: 0.7em;">' . $attr['name'] . ' <sup>(' . $ID . ','. $type. ')</sup></span>';
                 } else {
                     $svba[$ID] .= '<h6><i>' . $attr['name'] . '</i><sup>(' . $ID . ')</sup></h6>';
                 }
@@ -252,12 +253,12 @@ class DDI extends Model
                     foreach ($dta as $cname => $cvalue) {
                         $ccol = explode(';', $cname);
                         $sc .= '<tr>';
-                        $sc .= '<td width="5%" class="text-center"style="font-size: 0.7em">' . $ccol[0] . '</td>';
+                        $sc .= '<td width="5%" class="text-center"style="font-size: 0.7em"><nobr>' . $ccol[0] . '</nobr></td>';
                         $sc .= '<td width="70%" style="font-size: 0.7em">' . $ccol[1] . '</td>';
-                        $sc .= '<td width="10%" class="text-end" style="font-size: 0.7em">' . $cvalue . '</td>';
+                        $sc .= '<td width="10%" class="text-end" style="font-size: 0.7em"><nobr>' . $cvalue . '</nobr></td>';
                         if ($tot > 0)
                             {
-                                $sc .= '<td width="10%" class="text-end" style="font-size: 0.8em">' . number_format($cvalue/$tot*100,1,'.',',') . '%</td>';
+                                $sc .= '<td width="10%" class="text-end" style="font-size: 0.8em"><nobr>' . number_format($cvalue/$tot*100,1,'.',',') . '%</nobr></td>';
                             } else {
                                 $sc .= '<td width="20%" class="text-center" style="font-size: 0.8em"> - </td>';
                             }
