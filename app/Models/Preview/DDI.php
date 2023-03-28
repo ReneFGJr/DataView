@@ -243,6 +243,7 @@ class DDI extends Model
                 foreach ($catr as $key => $value) {
                     $tot = $tot + $value;
                     $dta[$key] = $value;
+                    pre($catr);
                 }
 
                 /* Show Categories */
