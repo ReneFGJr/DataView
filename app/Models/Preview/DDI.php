@@ -243,12 +243,12 @@ class DDI extends Model
                 foreach ($catr as $key => $value) {
                     $tot = $tot + $value;
                     $dta[$key] = $value;
-                    pre($catr);
                 }
 
                 /* Show Categories */
                 $sc = '';
-                if (count($dta) > 0) {
+                $totc = count($dta);
+                if ($totc > 0) {
                     $sc .= $th;
                     foreach ($dta as $cname => $cvalue) {
                         $ccol = explode(';', $cname);
@@ -272,7 +272,7 @@ class DDI extends Model
                 $sx .= '</table>' . cr();
 
 
-                if ($tot > 0) {
+                if ($totc > 0) {
                     $svba[$ID] .= $sx;
                 }
 
