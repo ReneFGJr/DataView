@@ -239,14 +239,13 @@ class DDI extends Model
                 /************************************* DADOS */
                 $tot = 0;
                 $dta = array();
-                $sx .= '<table class="table" style="border: 1px solid #000; width: 100%;">';
+                $sc = '<table class="table" style="border: 1px solid #000; width: 100%;">';
                 foreach ($catr as $key => $value) {
                     $tot = $tot + $value;
                     $dta[$key] = $value;
                 }
 
                 /* Show Categories */
-                $sc = '';
                 $totc = count($dta);
                 if ($totc > 0) {
                     $sc .= $th;
@@ -262,14 +261,13 @@ class DDI extends Model
                             }
                         $sc .= '</tr>';
                     }
-                    $sx .= $sc;
                 }
 
                 IF ($tot > 0)
                     {
-                        $sx .= '<tr><td colspan=3 class="text-end" style="font-size: 0.9em"><b>Total</b> <b>' . number_format($tot, 0, ',', '.') . '</b></td></tr>';
+                        $sc .= '<tr><td colspan=3 class="text-end" style="font-size: 0.9em"><b>Total</b> <b>' . number_format($tot, 0, ',', '.') . '</b></td></tr>';
                     }
-                $sx .= '</table>' . cr();
+                $sc .= '</table>' . cr();
 
 
                 if ($totc > 0) {
