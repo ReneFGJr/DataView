@@ -258,7 +258,13 @@ class DDI extends Model
                     $sx .= '</td><td class="text-end">';
                     $sx .= number_format($value, 0, ',', '.');
                     $sx .= '</td><td class="text-end">';
-                    $sx .= number_format($value / $tot * 100, 1, ',', '.') . '%';
+                    if ($tot > 0)
+                        {
+                            $sx .= number_format($value / $tot * 100, 1, ',', '.') . '%';
+                        } else {
+                            $sx .= '-';
+                        }
+
                     $sx .= '</td>';
                     $sx .= '</tr>';
                 }
