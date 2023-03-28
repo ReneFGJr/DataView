@@ -259,8 +259,7 @@ class DDI extends Model
                             {
                                 $sc .= '<td width="10%" class="text-end" style="font-size: 0.8em">' . number_format($cvalue/$tot*100,1,'.',',') . '%</td>';
                             } else {
-                                $sx .=
-                            '<td width="20%" class="text-center" style="font-size: 0.8em"> - </td>';
+                                $sc .= '<td width="20%" class="text-center" style="font-size: 0.8em"> - </td>';
                             }
                         $sc .= '</tr>';
                     }
@@ -275,7 +274,7 @@ class DDI extends Model
 
                 if ($totc > 0) {
                     $sx .= $sc;
-                    $svba[$ID] .= $sx;
+                    $svba[$ID] .= $sc;
                 }
 
 
