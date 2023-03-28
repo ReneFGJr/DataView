@@ -156,8 +156,6 @@ class DDI extends Model
                 $line2 = $var[$r];
                 $line = (array)$var[$r];
 
-                pre($line2);
-
                 /************************************************* @ATTRIBUTeS */
                 $attr = (array)$line['@attributes'];
                 $ID = $attr['ID'];
