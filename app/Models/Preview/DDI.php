@@ -246,6 +246,8 @@ class DDI extends Model
                     $dta[$key] = $value;
                 }
 
+                ksort($dta);
+
                 /* Show Categories */
                 $totc = count($dta);
                 if ($totc > 0) {
