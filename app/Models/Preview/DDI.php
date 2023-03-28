@@ -271,6 +271,7 @@ class DDI extends Model
 
 
                 if ($totc > 0) {
+                    $sx .= $sc;
                     $svba[$ID] .= $sx;
                 }
 
