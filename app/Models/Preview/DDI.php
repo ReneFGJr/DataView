@@ -156,6 +156,8 @@ class DDI extends Model
                 $line2 = $var[$r];
                 $line = (array)$var[$r];
 
+                pre($line2);
+
                 /************************************************* @ATTRIBUTeS */
                 $attr = (array)$line['@attributes'];
                 $ID = $attr['ID'];
@@ -164,6 +166,7 @@ class DDI extends Model
                 /************************************************* @FORMAT */
                 $form = (array)$line['varFormat'];
                 $form = (array)$form['@attributes'];
+                $type = $form['type'];
 
                 switch ($form['type']) {
                     case 'numeric':
@@ -194,7 +197,7 @@ class DDI extends Model
 
                 if (isset($line['labl'])) {
                     $labl = (string)$line['labl'];
-                    $svba[$ID] .= '<h6>' . $labl . '<br>' .
+                    $svba[$ID] .= '<h6>' . $labl . ' <sup>('. $type.')</sup>'.'<br>' .
                         '<i>' . $attr['name'] . '</i> <sup>(' . $ID . ')</sup></h6>';
                 } else {
                     $svba[$ID] .= '<h6><i>' . $attr['name'] . '</i><sup>(' . $ID . ')</sup></h6>';
