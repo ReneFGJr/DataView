@@ -1,58 +1,60 @@
-# DataView
+# CodeIgniter 4 Framework
 
-<h1>Requisistos</h1>
-<ul>
-<li>PHP 7.4 ou superiro</li>
-</ul>
+## What is CodeIgniter?
 
-<h1>Introdução</h1>
+CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
+More information can be found at the [official site](https://codeigniter.com).
 
-O DataView é uma ferramenta externa que se integra ao Dataverse possibilitando a visualização de alguns arquivos sem a necessidade de baixá-los.
-<br/>
-Para instalar é necessário ter acesso ao SO.
+This repository holds the distributable version of the framework.
+It has been built from the
+[development repository](https://github.com/codeigniter4/CodeIgniter4).
 
-<br/>
-Para ativação consulte: <a href="APACHE.md">APACHE.md</a>
-<br/>
-<h2>Para instalação</h2>
+More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
 
-Para instalação você pode baixa diretamente o arquivo em ZIP pelo <a href="https://github.com/ReneFGJr/DataView/archive/refs/heads/main.zip">ZIP do Github</a> ou clonar o repositório em sua instalação.
+You can read the [user guide](https://codeigniter.com/user_guide/)
+corresponding to the latest version of the framework.
 
-<code>
-    cd /var/www #ou o diretório que preferir<br/>
-    git clone https://github.com/ReneFGJr/DataView.git
-</code>
-<h3></h3>
+## Important Change with index.php
 
-<h2>Para configuração</h2>
+`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
+for better security and separation of components.
 
-Acesse a pasta de instalação ex:
-<code>
- cd /var/www/DataView
-</code>
+This means that you should configure your web server to "point" to your project's *public* folder, and
+not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
+framework are exposed.
 
-Criar uma cópia do arquivo "env" para configurações ".env"
-<code>cp env .env</code>
+**Please** read the user guide for a better explanation of how CI4 works!
 
-Editar o arquivo .env
-<code>nano .env</code>
+## Repository Management
 
-Editando os parametros para produção ou para desenvolvimento
+We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
+We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
+FEATURE REQUESTS.
 
-CI_ENVIRONMENT = production
-ou
-CI_ENVIRONMENT = development
+This repository is a "distribution" one, built by our release preparation script.
+Problems with it can be raised on our forum, or as issues in the main repository.
 
-Definir a URL do site
-app.baseURL = 'http://pocdadosabertos.inep.rnp.br/dataview/'
+## Contributing
 
-Libere acesso a escrita no diretorio abaixo para o usuário web
+We welcome contributions from the community.
 
-chown www-data:www-data /var/www/DataView/writable/ -R
-chown www-data:www-data /var/www/DataView/.tmp/ -R
+Please read the [*Contributing to CodeIgniter*](https://github.com/codeigniter4/CodeIgniter4/blob/develop/CONTRIBUTING.md) section in the development repository.
 
-Para instalar, consultar ou remover visualizadores consulte:
-<a href="_Documment/Install/Install.md">Instalador (Aplicativo)</a>
+## Server Requirements
 
-Para criar um PATH no Apache2 para o diretorio /dataview/
-<a href="_Documment/Install/Install_Apache2.md">Instalador Apache2 (Web)</a>
+PHP version 8.1 or higher is required, with the following extensions installed:
+
+- [intl](http://php.net/manual/en/intl.requirements.php)
+- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+
+> [!WARNING]
+> - The end of life date for PHP 7.4 was November 28, 2022.
+> - The end of life date for PHP 8.0 was November 26, 2023.
+> - If you are still using PHP 7.4 or 8.0, you should upgrade immediately.
+> - The end of life date for PHP 8.1 will be December 31, 2025.
+
+Additionally, make sure that the following extensions are enabled in your PHP:
+
+- json (enabled by default - don't turn it off)
+- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
+- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library

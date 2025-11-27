@@ -41,103 +41,128 @@ class Cache extends Model
     protected $afterDelete          = [];
 
     function clear()
-        {
-            $dir = '../.tmp/.cached';
-            $files = scandir($dir);
-            $n = 0;
-            for ($r=0;$r < count($files);$r++)
-                {
-                    $file = $files[$r];
-                    if (strlen($file) > 10)
-                        {
-                            unlink($dir . '/' . $file);
-                            $n++;
-                        }
-                }
-            return $n;
-        }
-
-    function download($file,$msg=false)
     {
-        $dir = '../.tmp';
-        dircheck($dir);
         $dir = '../.tmp/.cached';
-        dircheck($dir);
-
-        $f = $dir . '/' . md5($file);
-
-        if (file_exists($f)) {
-            $query = $_SERVER['QUERY_STRING'];
-            if ($msg == true)
-            {
-                echo '<span style="font-size: 08.em; color: red;">';
-                echo "Cached ";
-                echo '</span>';
+        $files = scandir($dir);
+        $n = 0;
+        for ($r = 0; $r < count($files); $r++) {
+            $file = $files[$r];
+            if (strlen($file) > 10) {
+                unlink($dir . '/' . $file);
+                $n++;
             }
-            $file = $f;
-        } else {
-            $meth = 'CURL';
-            //$meth = 'GET';
-            echo "DOWNLOAD - ".$file;
-            switch($meth)
-                {
-                    case 'CURL':
-                    /************************** METHOD CURL */
-
-                    set_time_limit(0); // if the file is large set the timeout.
-                    $fn = fopen($f, "w") or die("cannot open" . $f);
-
-                    // Setting the curl operations
-                    $cd = curl_init();
-                    curl_setopt($cd, CURLOPT_URL, $file);
-                    curl_setopt($cd, CURLOPT_FILE, $fn);
-                    //curl_setopt($cd, CURLOPT_SSL_VERIFYHOST, false);
-                    curl_setopt($cd, CURLOPT_SSL_VERIFYPEER, false);
-                    curl_setopt($cd, CURLOPT_TIMEOUT, 60); // timeout is 30 seconds, to download the large files you may need to increase the timeout limit.
-
-                    // Running curl to download file
-                    curl_exec($cd);
-                    if (curl_errno($cd)) {
-                        fclose($fn);
-                        unlink($f);
-                        echo bsmessage("ERROR: the cURL error is : " . curl_error($cd),3);
-                        return "";
-                    } else {
-                        $status = curl_getinfo($cd);
-                        echo $status["http_code"] == 200 ? "The File is Downloaded" : "The error code is : " . $status["http_code"];
-                        // the http status 200 means everything is going well. the error codes can be 401, 403 or 404.
-                    }
-
-                    // close and finalize the operations.
-                    curl_close($cd);
-                    fclose($fn);
-
-                    $file = $f;
-                    break;
-
-                    case 'GET':
-                    /************************** METHOD GET */
-                        $txt = file_get_contents($file);
-                        if (strlen($txt) > 100) {
-                            file_put_contents($f, $txt);
-                            $file = $f;
-                        }
-                }
-
-
         }
-        return $file;
+        return $n;
     }
 
+    /**
+     * Faz download de um arquivo remoto com cache local.
+     * Retorna o caminho do arquivo local OU false em caso de erro.
+     */
+    function download($file, $msg = false)
+    {
+        try {
+            // Diretórios
+            $baseDir = '../.tmp';
+            $cacheDir = $baseDir . '/.cached';
+
+            if (!dircheck($baseDir) || !dircheck($cacheDir)) {
+                throw new \Exception("Erro ao criar diretórios de cache.");
+            }
+
+            // Nome do arquivo no cache (hash para evitar caracteres inválidos)
+            $cachedFile = $cacheDir . '/' . md5($file);
+
+            /* =======================
+           1. RETORNA DO CACHE
+        ======================== */
+            if (file_exists($cachedFile)) {
+
+                if ($msg) {
+                    echo '<span style="font-size: 0.8em; color: red;">Cached</span>';
+                }
+
+                return $cachedFile;
+            }
+
+            echo "DOWNLOAD – {$file}<br>";
+
+            /* =======================
+           2. DOWNLOAD VIA CURL
+        ======================== */
+            $fp = fopen($cachedFile, 'w');
+
+            if (!$fp) {
+                throw new \Exception("Não foi possível criar o arquivo de cache: $cachedFile");
+            }
+            echo '<h1>'.$file.'</h1>';
+            $ch = curl_init($file);
+            curl_setopt_array($ch, [
+                CURLOPT_FILE            => $fp,
+                CURLOPT_FOLLOWLOCATION  => true,
+                CURLOPT_SSL_VERIFYPEER  => false,
+                CURLOPT_CONNECTTIMEOUT  => 20,
+                CURLOPT_TIMEOUT         => 90,
+                CURLOPT_FAILONERROR     => true, // faz curl_exec falhar em 400/500
+            ]);
+
+            $ok = curl_exec($ch);
+            $error = curl_error($ch);
+            $info = curl_getinfo($ch);
+            curl_close($ch);
+            fclose($fp);
+
+            // Falha na transferência
+            if (!$ok) {
+                unlink($cachedFile);
+                throw new \Exception("cURL error: " . $error);
+            }
+
+            // HTTP não 200
+            if ($info['http_code'] !== 200) {
+                unlink($cachedFile);
+                throw new \Exception("Erro HTTP: " . $info['http_code']);
+            }
+
+            echo "Arquivo baixado com sucesso.<br>";
+
+            return $cachedFile;
+        } catch (\Exception $e) {
+
+            // Remove arquivo incompleto
+            if (isset($cachedFile) && file_exists($cachedFile)) {
+                unlink($cachedFile);
+            }
+
+            // Log opcional
+            // log_message('error', 'Download falhou: ' . $e->getMessage());
+
+            echo "ERRO: " . $e->getMessage();
+
+            return false;
+        }
+    }
+
+    /**
+     * Salva conteúdo diretamente no cache
+     */
     function saveCache($file, $txt)
     {
-        $dir = '../.tmp';
-        dircheck($dir);
-        $dir = '../.tmp/.cached';
-        dircheck($dir);
+        $baseDir = '../.tmp';
+        $cacheDir = $baseDir . '/.cached';
 
-        $f = $dir . '/' . md5($file);
-        file_put_contents($f, $txt);
-        return true;
+        if (!dircheck($baseDir) || !dircheck($cacheDir)) {
+            return false;
+        }
+
+        $cachedFile = $cacheDir . '/' . md5($file);
+
+        try {
+            file_put_contents($cachedFile, $txt);
+            return true;
+        } catch (\Exception $e) {
+            // log_message('error', "Erro ao gravar cache: " . $e->getMessage());
+            return false;
+        }
     }
 }

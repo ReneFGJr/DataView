@@ -19,22 +19,7 @@ class Dataview extends BaseController
     {
         $DataViewer = new \App\Models\DataViewer();
         //$sx = $DataViewer->index();
-        $sx = view('header/header');
-        $sx .=  '<div class="container-fluid">';
-        $sx .=  '<div class="row">';
-        $sx .=  '<div class="col-6 p-5 text-center h-100 d-inline-block" style="background-color: #830705;">';
-        $sx .=  '<img src="'.getenv('app.baseURL').'/img/logo/logo_dataview-pb.png" class="mt-5 mb-5" style="width: 300px;">';
-        $sx .=  '<div style="height: 1024px;"></div>';
-        $sx .=  '</div>';
-        $sx .=  '<div class="col-6 p-1 text-end" style="background-color: #FFF;">';
-        $sx .=  "v0.22.11.17<hr>";
-
-        $sx .= ' '.$txt;
-
-        $sx .=  '</div>';
-        $sx .=  '</div>';
-        $sx .=  '</div>';
-        $sx .=  '</div>';
+        $sx = view('page/homepage', ['txt' => $txt]);
         return $sx;
     }
 
@@ -107,6 +92,18 @@ class Dataview extends BaseController
             ';
         return $sx;
     }
+
+    function sample()
+    {
+        $DataViewer = new \App\Models\DataViewer();
+        $sx = $this->cab();
+        $sx .= '<a href="http://dataview/view/pdf?siteUrl=https://dataverse.harvard.edu&PID=10.7910/DVN/KJTWDG&datasetId=&fileid=13170944">Sample PDF File</a>';
+        $sx .= '<hr>';
+        $sx .= '<a href="http://dataview/view/tab?siteUrl=https://dataverse.harvard.edu&PID=10.7910/DVN/JIZCHD&datasetId=&fileid=13185662">Sample TAB File</a>';
+        $sx .= '<hr>';
+        $sx .= '<a href="http://dataview/view/tab?siteUrl=https://dataverse.ideal.ufpb.br&PID=10.71650/DATAPB/H1UK3Y&datasetId=&fileid=320&version=1.0">Sample GEO File</a>';
+        return $sx;
+    }   
 
     function view($content = '', $d1 = '', $d2 = '', $d3 = '')
     {
