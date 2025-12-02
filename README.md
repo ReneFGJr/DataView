@@ -21,3 +21,6 @@ mkdir /var/www/dataview
 ln -s /home/dataverse/DataView/ /var/www/
 chown www-data:www-data /home/dataverse/DataView/ -R
 </code>
+
+# TIFF Image
+pip install pillow

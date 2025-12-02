@@ -28,8 +28,19 @@ class ImageProxy extends Controller
             return "Arquivo não encontrado: $real";
         }
 
+        if (!is_file($real.'_nini')) {            
+            return "O caminho MINI não é um arquivo válido.";
+        } else {
+            $real = $real.'_nini';
+        }
+
         // Detecta o tipo real do arquivo
         $mime = mime_content_type($real);
+
+        if ($mime == 'image/tiff' || $mime == 'image/tif') {
+            echo "Erro de vializarção TIFF";
+            exit;
+        }
 
         // Envia headers corretos
         header("Content-Type: $mime");

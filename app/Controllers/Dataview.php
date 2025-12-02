@@ -97,21 +97,7 @@ class Dataview extends BaseController
     {
         $DataViewer = new \App\Models\DataViewer();
         $sx = $this->cab();
-        $sx .= '<a href="'.base_url('view/pdf?siteUrl=https://dataverse.harvard.edu&PID=10.7910/DVN/KJTWDG&datasetId=&fileid=13170944').'">Sample PDF File</a>';
-        $sx .= '<hr>';
-        $sx .= '<a href="'.base_url('view/tab?siteUrl=https://dataverse.harvard.edu&PID=10.7910/DVN/JIZCHD&datasetId=&fileid=13185662').'">Sample TAB File</a>';
-        $sx .= '<hr>';
-        $sx .= '<a href="'.base_url('view/tab?siteUrl=https://dataverse.ideal.ufpb.br&PID=10.71650/DATAPB/H1UK3Y&datasetId=&fileid=320&version=1.0').'">Sample GEO File</a>';
-        $sx .= '<hr>';
-        //$sx .= '<a href="'.base_url('view/tab?siteUrl=https://dataverse.harvard.edu&PID=10.7910/DVN/KJTWDG&datasetId=&fileid=13170944').'">Sample GEO File</a>';
-        $sx .= '<a href="'.base_url('view/jpg?siteUrl=https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/YJ0KEQ/ZDCCYT').'">Sample JPG File (DOI)</a>';
-        $sx .= '<hr>';
-        $sx .= '<a href="'.base_url('view/jpg?siteUrl=https://dataverse.ideal.ufpb.br?PID=10.48472/DATAPB/1HPYIB&datasetId=&fileid=157&version=1.0').'">Sample JPG File 2</a>';
-
-        $sx .= '<a href="'.base_url('view/png?siteUrl=https://dataverse.ideal.ufpb.br/api/access/datafile/157?imageThumb=400&pfdrid_c=true').'">Sample PNG</a>';
-
-
-        
+        $sx .= view('widget/samples');       
         return $sx;
     }   
 
@@ -129,6 +115,11 @@ class Dataview extends BaseController
                 $DataViewer = new \App\Models\Preview\Image();
                 echo $DataViewer->index();
                 break;
+
+            case 'tiff':
+                $DataViewer = new \App\Models\Preview\Image();
+                echo $DataViewer->index();
+                break;                
 
             case 'tab':
                 $DataViewer = new \App\Models\Preview\TAB();
@@ -175,7 +166,7 @@ class Dataview extends BaseController
                 $sx .=  '</div>';
                 $sx .=  '</div>';
                 $sx .=  '<pre>';
-                $sx .=  h($content);
+                $sx .=  $content;
                 return $sx;
                 break;
         }

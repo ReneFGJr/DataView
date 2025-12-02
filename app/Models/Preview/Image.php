@@ -39,69 +39,109 @@ class Image extends Model
     protected $afterFind            = [];
     protected $beforeDelete         = [];
     protected $afterDelete          = [];
+    function redimensionarImagem($origem, $destino, $larguraNova = 800)
+    {
+        ini_set('memory_limit', '1024M');  // segurança para imagens grandes
 
-function redimensionarImagem($origem, $destino, $larguraNova = 800)
-{
-    ini_set('memory_limit', '1024M');  // ou 1G
-    // Verifica MIME real
-    $mime = mime_content_type($origem);
+        // Verifica MIME real
+        $mime = mime_content_type($origem);
 
-    // Abre a imagem dependendo do tipo
-    switch ($mime) {
-        case 'image/jpeg':
-        case 'image/jpg':
-            $imagemOriginal = imagecreatefromjpeg($origem);
-            $formato = 'jpg';
-            break;
+        # TIFF
+        if ($mime === 'image/tiff' || $mime === 'image/tif') {
 
-        case 'image/png':
-            $imagemOriginal = imagecreatefrompng($origem);
-            $formato = 'png';
-            break;
+            // Caminho do script Python que você criou
+            $pythonScript = '../python/tiff_jpg.py'; // <- ajuste o caminho real
 
-        default:
-            return false; // tipo não suportado
+            // Garante que o diretório existe
+            if (!file_exists($pythonScript)) {
+                echo "Erro: Script Python não encontrado: " . $pythonScript;
+                exit;
+            }
+
+            // Executa o comando Python
+            $cmd = "python " . escapeshellarg($pythonScript) .
+                " --input " . escapeshellarg($origem) .
+                " --output " . escapeshellarg($destino);
+
+
+            exec($cmd . " 2>&1", $output, $retorno);
+
+            // Debug opcional:
+            // echo "<pre>CMD: $cmd\nRETORNO: $retorno\n"; print_r($output); exit;
+
+            if ($retorno !== 0) {
+                echo '<tt>'.$cmd.'</tt><br>';
+                echo "Erro ao converter TIFF para JPG via Python: " . implode("\n", $output);
+            }
+
+            // Sucesso na conversão → retorna imediatamente
+            return true;
+        }
+
+        // --- FORMATO JPG / PNG NORMAL COM GD --------------------------------
+
+        switch ($mime) {
+            case 'image/jpeg':
+            case 'image/jpg':
+                $imagemOriginal = imagecreatefromjpeg($origem);
+                $formato = 'jpg';
+                break;
+
+            case 'image/png':
+                $imagemOriginal = imagecreatefrompng($origem);
+                $formato = 'png';
+                break;
+
+            default:
+                return false; // tipo não suportado
+        }
+
+        // Obtém dimensões
+        list($larguraOriginal, $alturaOriginal) = getimagesize($origem);
+
+        // Calcula altura proporcional
+        $ratio = $larguraOriginal / $alturaOriginal;
+        $alturaNova = $larguraNova / $ratio;
+
+        // Cria nova imagem
+        $nova = imagecreatetruecolor($larguraNova, $alturaNova);
+
+        // PNG mantém transparência
+        if ($formato === 'png') {
+            imagealphablending($nova, false);
+            imagesavealpha($nova, true);
+            $transparente = imagecolorallocatealpha($nova, 0, 0, 0, 127);
+            imagefill($nova, 0, 0, $transparente);
+        }
+
+        // Redimensiona
+        imagecopyresampled(
+            $nova,
+            $imagemOriginal,
+            0,
+            0,
+            0,
+            0,
+            $larguraNova,
+            $alturaNova,
+            $larguraOriginal,
+            $alturaOriginal
+        );
+
+        // Salva
+        if ($formato === 'jpg') {
+            imagejpeg($nova, $destino, 85);
+        } else {
+            imagepng($nova, $destino, 6);
+        }
+
+        // Libera memória
+        imagedestroy($imagemOriginal);
+        imagedestroy($nova);
+
+        return true;
     }
 
-    // Obtém dimensões
-    list($larguraOriginal, $alturaOriginal) = getimagesize($origem);
-
-    // Calcula altura proporcional
-    $ratio = $larguraOriginal / $alturaOriginal;
-    $alturaNova = $larguraNova / $ratio;
-
-    // Cria nova imagem
-    $nova = imagecreatetruecolor($larguraNova, $alturaNova);
-
-    // Se PNG → manter transparência
-    if ($formato === 'png') {
-        imagealphablending($nova, false);
-        imagesavealpha($nova, true);
-        $transparente = imagecolorallocatealpha($nova, 0, 0, 0, 127);
-        imagefill($nova, 0, 0, $transparente);
-    }
-
-    // Redimensiona
-    imagecopyresampled(
-        $nova, $imagemOriginal,
-        0, 0, 0, 0,
-        $larguraNova, $alturaNova,
-        $larguraOriginal, $alturaOriginal
-    );
-
-    // Salva de acordo com o formato original
-    if ($formato === 'jpg') {
-        imagejpeg($nova, $destino, 85);
-    } else {
-        imagepng($nova, $destino, 6); // compressão média
-    }
-
-    // Libera memória
-    imagedestroy($imagemOriginal);
-    imagedestroy($nova);
-
-    return true;
-}
 
 
 
@@ -132,11 +172,10 @@ function redimensionarImagem($origem, $destino, $larguraNova = 800)
             $file = $SERVER_URL;
         }
 
+        $file = $Cache->download($file);
+        $file2 = $file . '_nini';
         $info = getimagesize($file);
 
-        $file = $Cache->download($file);
-        $file2 = $file.'_nini';
-        
         if (!file_exists($file2)) {
 
             switch ($info['mime']) {
@@ -145,18 +184,19 @@ function redimensionarImagem($origem, $destino, $larguraNova = 800)
                     // É JPEG
                     break;
                 case 'image/png':
-                    echo "PNG";
                     $this->redimensionarImagem($file, $file2);
-                    exit;
                     // É PNG
                     break;
+                case 'image/tiff':
+                    // É TIFF
+                    $this->redimensionarImagem($file, $file2);
+                    break;
                 default:
-                    echo('Tipo de imagem não suportado para redimensionamento. ');
+                    echo ('Tipo de imagem não suportado para redimensionamento. ');
                     pre($info);
                     exit;
                     break;
             }
-            
         }
 
         if (!file_exists($file)) {
@@ -168,7 +208,7 @@ function redimensionarImagem($origem, $destino, $larguraNova = 800)
         }
 
 
-        $data = [];        
+        $data = [];
         $data['img'] = base_url('/imageproxy?file=' . $file2);
         $data['info'] = $info;
         $data['file'] = $file;

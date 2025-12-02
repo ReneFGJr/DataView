@@ -77,15 +77,11 @@ class Cache extends Model
            1. RETORNA DO CACHE
         ======================== */
             if (file_exists($cachedFile)) {
-
                 if ($msg) {
                     echo '<span style="font-size: 0.8em; color: red;">Cached</span>';
                 }
-
                 return $cachedFile;
             }
-
-            echo "DOWNLOAD – {$file}<br>";
 
             /* =======================
            2. DOWNLOAD VIA CURL
@@ -95,7 +91,6 @@ class Cache extends Model
             if (!$fp) {
                 throw new \Exception("Não foi possível criar o arquivo de cache: $cachedFile");
             }
-            echo '<h1>'.$file.'</h1>';
             $ch = curl_init($file);
             curl_setopt_array($ch, [
                 CURLOPT_FILE            => $fp,
