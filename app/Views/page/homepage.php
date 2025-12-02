@@ -114,7 +114,6 @@
     </div>
 
     <!-- RODAPÉ MINIMALISTA -->
-    <!-- RODAPÉ MINIMALISTA -->
     <div class="footer-min">
         DataView © <?= date("Y") ?> —
         Development by

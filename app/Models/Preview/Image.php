@@ -40,42 +40,157 @@ class Image extends Model
     protected $beforeDelete         = [];
     protected $afterDelete          = [];
 
+function redimensionarImagem($origem, $destino, $larguraNova = 800)
+{
+    ini_set('memory_limit', '1024M');  // ou 1G
+    // Verifica MIME real
+    $mime = mime_content_type($origem);
+
+    // Abre a imagem dependendo do tipo
+    switch ($mime) {
+        case 'image/jpeg':
+        case 'image/jpg':
+            $imagemOriginal = imagecreatefromjpeg($origem);
+            $formato = 'jpg';
+            break;
+
+        case 'image/png':
+            $imagemOriginal = imagecreatefrompng($origem);
+            $formato = 'png';
+            break;
+
+        default:
+            return false; // tipo não suportado
+    }
+
+    // Obtém dimensões
+    list($larguraOriginal, $alturaOriginal) = getimagesize($origem);
+
+    // Calcula altura proporcional
+    $ratio = $larguraOriginal / $alturaOriginal;
+    $alturaNova = $larguraNova / $ratio;
+
+    // Cria nova imagem
+    $nova = imagecreatetruecolor($larguraNova, $alturaNova);
+
+    // Se PNG → manter transparência
+    if ($formato === 'png') {
+        imagealphablending($nova, false);
+        imagesavealpha($nova, true);
+        $transparente = imagecolorallocatealpha($nova, 0, 0, 0, 127);
+        imagefill($nova, 0, 0, $transparente);
+    }
+
+    // Redimensiona
+    imagecopyresampled(
+        $nova, $imagemOriginal,
+        0, 0, 0, 0,
+        $larguraNova, $alturaNova,
+        $larguraOriginal, $alturaOriginal
+    );
+
+    // Salva de acordo com o formato original
+    if ($formato === 'jpg') {
+        imagejpeg($nova, $destino, 85);
+    } else {
+        imagepng($nova, $destino, 6); // compressão média
+    }
+
+    // Libera memória
+    imagedestroy($imagemOriginal);
+    imagedestroy($nova);
+
+    return true;
+}
+
+
+
     function index()
-        {
+    {
+        $Cache = new \App\Models\IO\Cache();
+
         $SERVER_URL = $_GET['siteUrl'];
-        $PERSISTENT_ID = $_GET['PID'];
-        if (isset($_GET['key']))
-            {
-                $API_TOKEN = $_GET['key'];
-            } else {
-                $API_TOKEN = '';
-            }
-        
-        $datasetId = $_GET['datasetId'];
-        $fileid = $_GET['fileid'];
-
-        $file = $SERVER_URL . '/api/access/datafile/' . $fileid . '?key=' . $API_TOKEN;  
-
-        $sx = '';
-        $sx .= '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">'.chr(13);
-        $sx .= '<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>'.chr(13);
-        $sx .= '<img src="'.$file.'" style="width: 100%">';
-        echo $sx;
+        if (isset($_GET['PID'])) {
+            $PERSISTENT_ID = $_GET['PID'];
+        } else {
+            $PERSISTENT_ID = '';
         }
 
-    function view($d1='',$d2='',$d3='')
-        {
-            $Files = new \App\Models\Preview\Files();
-            $files = $Files->download();
-            header('Content-type: application/pdf');
-            header('Content-Disposition: inline; filename="the.pdf"');
-            header('Content-Transfer-Encoding: binary');
-            header('Content-Length: ' . filesize($files));
-            @readfile($files);
+        if (isset($_GET['key'])) {
+            $API_TOKEN = $_GET['key'];
+        } else {
+            $API_TOKEN = '';
+        }
 
-            exit;
-            $sx = '';
-            $sx .= '
+        if (isset($_GET['datasetId'])) {
+            $datasetId = $_GET['datasetId'];
+            $fileid = $_GET['fileid'];
+            $file = $SERVER_URL . '/api/access/datafile/' . $fileid . '?key=' . $API_TOKEN;
+        } else {
+            $datasetId = '';
+            $fielid = '';
+            $file = $SERVER_URL;
+        }
+
+        $info = getimagesize($file);
+
+        $file = $Cache->download($file);
+        $file2 = $file.'_nini';
+        
+        if (!file_exists($file2)) {
+
+            switch ($info['mime']) {
+                case 'image/jpeg':
+                    $this->redimensionarImagem($file, $file2);
+                    // É JPEG
+                    break;
+                case 'image/png':
+                    echo "PNG";
+                    $this->redimensionarImagem($file, $file2);
+                    exit;
+                    // É PNG
+                    break;
+                default:
+                    echo('Tipo de imagem não suportado para redimensionamento. ');
+                    pre($info);
+                    exit;
+                    break;
+            }
+            
+        }
+
+        if (!file_exists($file)) {
+            exit('Erro ao baixar o arquivo.');
+        }
+
+        if (!file_exists($file2)) {
+            exit('Erro ao baixar o arquivo da miniatura.');
+        }
+
+
+        $data = [];        
+        $data['img'] = base_url('/imageproxy?file=' . $file2);
+        $data['info'] = $info;
+        $data['file'] = $file;
+        $data['preview'] = base_url('/imageproxy?file=' . $file);
+        $sx = view('widget/image', $data);
+
+        echo $sx;
+    }
+
+    function view($d1 = '', $d2 = '', $d3 = '')
+    {
+        $Files = new \App\Models\Preview\Files();
+        $files = $Files->download();
+        header('Content-type: application/pdf');
+        header('Content-Disposition: inline; filename="the.pdf"');
+        header('Content-Transfer-Encoding: binary');
+        header('Content-Length: ' . filesize($files));
+        @readfile($files);
+
+        exit;
+        $sx = '';
+        $sx .= '
             <!doctype html> 
             <html lang="en">
             <head>
@@ -111,17 +226,17 @@ class Image extends Model
                 // more code here
             </script>            
             </html>';
-            $sx .= 'https://code.tutsplus.com/tutorials/how-to-create-a-pdf-viewer-in-javascript--cms-32505';
-            exit;
-            
-            $sx = '';
-            $sx .= '<div class="container">';
-            $sx .= '<div class="row">';
-            $sx .= '<h1>PDF</h1>';
-            $sx .= '</div>';
-            $sx .= '</div>';
+        $sx .= 'https://code.tutsplus.com/tutorials/how-to-create-a-pdf-viewer-in-javascript--cms-32505';
+        exit;
 
-            $sx = '
+        $sx = '';
+        $sx .= '<div class="container">';
+        $sx .= '<div class="row">';
+        $sx .= '<h1>PDF</h1>';
+        $sx .= '</div>';
+        $sx .= '</div>';
+
+        $sx = '
                 <html>
                 <head>
                 <meta charset="utf-8">
@@ -163,6 +278,6 @@ class Image extends Model
                 </body>
                 </html>
             ';
-            return $sx;
-        }
+        return $sx;
+    }
 }

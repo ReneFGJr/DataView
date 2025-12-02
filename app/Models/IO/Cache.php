@@ -124,8 +124,6 @@ class Cache extends Model
                 throw new \Exception("Erro HTTP: " . $info['http_code']);
             }
 
-            echo "Arquivo baixado com sucesso.<br>";
-
             return $cachedFile;
         } catch (\Exception $e) {
 
