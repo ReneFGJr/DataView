@@ -97,11 +97,11 @@ class Dataview extends BaseController
     {
         $DataViewer = new \App\Models\DataViewer();
         $sx = $this->cab();
-        $sx .= '<a href="http://dataview/view/pdf?siteUrl=https://dataverse.harvard.edu&PID=10.7910/DVN/KJTWDG&datasetId=&fileid=13170944">Sample PDF File</a>';
+        $sx .= '<a href="'.base_url('view/pdf?siteUrl=https://dataverse.harvard.edu&PID=10.7910/DVN/KJTWDG&datasetId=&fileid=13170944').'">Sample PDF File</a>';
         $sx .= '<hr>';
-        $sx .= '<a href="http://dataview/view/tab?siteUrl=https://dataverse.harvard.edu&PID=10.7910/DVN/JIZCHD&datasetId=&fileid=13185662">Sample TAB File</a>';
+        $sx .= '<a href="'.base_url('view/tab?siteUrl=https://dataverse.harvard.edu&PID=10.7910/DVN/JIZCHD&datasetId=&fileid=13185662').'">Sample TAB File</a>';
         $sx .= '<hr>';
-        $sx .= '<a href="http://dataview/view/tab?siteUrl=https://dataverse.ideal.ufpb.br&PID=10.71650/DATAPB/H1UK3Y&datasetId=&fileid=320&version=1.0">Sample GEO File</a>';
+        $sx .= '<a href="'.base_url('view/tab?siteUrl=https://dataverse.ideal.ufpb.br&PID=10.71650/DATAPB/H1UK3Y&datasetId=&fileid=320&version=1.0').'">Sample GEO File</a>';
         return $sx;
     }   
 
