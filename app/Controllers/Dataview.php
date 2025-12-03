@@ -97,9 +97,9 @@ class Dataview extends BaseController
     {
         $DataViewer = new \App\Models\DataViewer();
         $sx = $this->cab();
-        $sx .= view('widget/samples');       
+        $sx .= view('widget/samples');
         return $sx;
-    }   
+    }
 
     function view($content = '', $d1 = '', $d2 = '', $d3 = '')
     {
@@ -119,10 +119,15 @@ class Dataview extends BaseController
             case 'tiff':
                 $DataViewer = new \App\Models\Preview\Image();
                 echo $DataViewer->index();
-                break;                
+                break;
 
             case 'tab':
                 $DataViewer = new \App\Models\Preview\TAB();
+                echo $DataViewer->index();
+                break;
+
+            case 'geo':
+                $DataViewer = new \App\Models\Preview\GEO();
                 echo $DataViewer->index();
                 break;
 
