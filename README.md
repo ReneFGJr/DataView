@@ -23,4 +23,5 @@ chown www-data:www-data /home/dataverse/DataView/ -R
 </code>
 
 # TIFF Image
-pip install pillow
+ pip install pillow
+ 
