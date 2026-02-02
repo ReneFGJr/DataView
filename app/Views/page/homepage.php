@@ -105,8 +105,11 @@
                 </a>
             </div>
 
-            <br/>
-            <a href="<?= base_url('sample') ?>">Exemplos</a>
+            <br />
+            <nobr>
+                <a href="<?= base_url('sample') ?>">Exemplos</a>
+                <a href="<?= base_url('dataset') ?>" class="link italic ms-2">Dataset</a>
+            </nobr>
         </div>
 
 

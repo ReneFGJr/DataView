@@ -9,5 +9,6 @@ $routes->get('/', 'Dataview::index');
 
 $routes->get('/view/(:any)', 'Dataview::view/$1');
 $routes->get('/sample', 'Dataview::sample');
+$routes->get('/dataset', 'Dataview::dataset');
 
 $routes->get('/imageproxy', 'ImageProxy::index');

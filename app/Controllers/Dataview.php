@@ -15,7 +15,7 @@ define("MODULE", 'dataview');
 
 class Dataview extends BaseController
 {
-    public function content($txt='')
+    public function content($txt = '')
     {
         $DataViewer = new \App\Models\DataViewer();
         //$sx = $DataViewer->index();
@@ -24,35 +24,34 @@ class Dataview extends BaseController
     }
 
     function index()
-        {
-            $sx = $this->content('ONLINE');
-            return $sx;
-        }
+    {
+        $sx = $this->content('ONLINE');
+        return $sx;
+    }
 
     function open()
-        {
+    {
         $sx = '';
         $OPEN = new \App\Models\Forms\DOI();
         $Codebook = new \App\Models\Preview\Codebook();
 
         $url = get("url");
         $doi = get("doi");
-        if ((substr($url,0,4) == 'http') and ($doi != ''))
-            {
-                $sx .= $Codebook->show($url,$doi);
-            } else {
-                $sx .= $this->content($OPEN->form());
-            }
-        return $sx;
+        if ((substr($url, 0, 4) == 'http') and ($doi != '')) {
+            $sx .= $Codebook->show($url, $doi);
+        } else {
+            $sx .= $this->content($OPEN->form());
         }
+        return $sx;
+    }
 
     function clear()
-        {
-            $Cache = new \App\Models\IO\Cache();
-            $nr = $Cache->clear();
-            $sx = $this->content('<center>'.bsmessage($nr. ' cache cleared.'. '</center>',1));
-            return $sx;
-        }
+    {
+        $Cache = new \App\Models\IO\Cache();
+        $nr = $Cache->clear();
+        $sx = $this->content('<center>' . bsmessage($nr . ' cache cleared.' . '</center>', 1));
+        return $sx;
+    }
 
     function file($id = '')
     {
@@ -90,6 +89,34 @@ class Dataview extends BaseController
             <!-- JavaScript Bundle with Popper -->
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
             ';
+        return $sx;
+    }
+
+    function dataset()
+    {
+        $DataViewer = new \App\Models\DataViewer();
+        $doi = $this->request->getVar("doi");
+        if ($doi != '') {
+            $DoiMetadataModel = new \App\Models\DoiMetadataModel();
+            $result = $DoiMetadataModel->fetchDoiMetadata($doi);
+            if (isset($result['metadata'])) {
+                if (isset($result['metadata']['url'])) {
+                    $url = $result['metadata']['url'];
+                    $sx = $this->cab();
+                    $sx .= $DoiMetadataModel->fetchFromDataverse($url);
+                }
+            } else {
+                $sx = $this->cab();
+                $sx .= view('widget/doi/datacite_info', [
+                    'source'   => $result['source'],
+                    'doi'      => $result['doi'],
+                    'metadata' => $result['metadata']
+                ]);
+            }
+        } else {
+            $sx = $this->cab();
+            $sx .= view('widget/dataset');
+        }
         return $sx;
     }
 
@@ -178,9 +205,7 @@ class Dataview extends BaseController
         return $sx;
     }
 
-    function test($d1 = '', $d2 = '', $d3 = '')
-    {
-    }
+    function test($d1 = '', $d2 = '', $d3 = '') {}
 
     function admin($d1 = '', $d2 = '', $d3 = '')
     {
