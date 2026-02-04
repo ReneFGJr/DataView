@@ -58,7 +58,7 @@ class TAB extends Model
         }
 
         $file = $Cache->download($file);
-
+        
         if (!file_exists($file)) {
             exit('Erro ao baixar o arquivo.');
         }
@@ -93,11 +93,19 @@ class TAB extends Model
 
             fclose($file);
 
+            /************************ Mapa GEO */
+            $GEO = new \App\Models\Preview\GEO();
+            if ($GEO->hasGeo($header)) {
+                $mapa = $GEO->index();
+            } else {
+                $mapa = null;
+            }
 
             echo view('render/table', [
                 'header' => $header,
                 'data'   => $data,
-                'limit'  => $limit
+                'limit'  => $limit,
+                'mapa'   => $mapa,
             ]);            
         }
             

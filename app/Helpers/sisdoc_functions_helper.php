@@ -23,3 +23,24 @@ function pre($dt, $force = true)
         exit;
     }
 }
+
+function displayDV($text)
+{
+    $rsp = '';
+    if (is_array($text)) {
+        return "";
+        foreach ($text as $t) {
+            if (is_array($t)) {
+                foreach($t as $k1=>$v1)
+                    {
+                        $rsp .= $k1 . ': ' . displayDV($v1) . '<br>';
+                    }
+            } else {
+                $rsp .=  str_replace('<', '&lt;', str_replace('>', '&gt;', $t)) . '<br>';
+            }
+        }
+    }
+    //$rsp = str_replace('<', '&lt;', $rsp);
+    //$rsp = str_replace('>', '&gt;', $rsp);
+    return $rsp;
+}

@@ -55,13 +55,14 @@
                     data-bs-target="#table"
                     type="button" role="tab">Tabela</button>
             </li>
-
+            <!---- Mapa ---->
+            <?php if (isset($mapa)) {?>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="map-tab" data-bs-toggle="tab"
                     data-bs-target="#map-tab-content"
                     type="button" role="tab">Mapa</button>
             </li>
-
+            <?php } ?>
         </ul>
 
         <!-- TAB CONTENT -->
@@ -105,15 +106,11 @@
             </div>
 
             <!-- TAB: MAPA -->
+             <?php if (isset($mapa)) {?>
             <div class="tab-pane fade" id="map-tab-content" role="tabpanel">
-
-                <div class="mt-4">
-                    <div id="map">
-                    MAPA
-                    </div>
-                </div>
-
+                    <?= $mapa ?>
             </div>
+            <?php } ?>
 
         </div>
 

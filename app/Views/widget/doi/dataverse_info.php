@@ -54,8 +54,7 @@ $cit = $lv['metadataBlocks']['citation']['fields'];
         </li>
     </ul>
 
-    <div class="tab-content border border-top-0 p-4 bg-white shadow-sm">
-
+    <div class="tab-content border border-top-0 p-4 bg-white shadow-sm">        
         <!-- VISÃO GERAL -->
         <div class="tab-pane fade show active" id="geral">
             <table class="table table-sm">
@@ -65,22 +64,26 @@ $cit = $lv['metadataBlocks']['citation']['fields'];
                 </tr>
                 <tr>
                     <th>UNF</th>
-                    <td><?= esc($lv['UNF']) ?></td>
+                    <td><?php if (isset($lv['UNF'])) { echo displayDV($lv['UNF']); } ?></td>
                 </tr>
+                
                 <tr>
                     <th>Versão</th>
-                    <td><?= esc($lv['versionNumber']) ?>.<?= esc($lv['versionMinorNumber']) ?></td>
+                    <td><?= esc($lv['versionNumber']) ?>.<?= displayDV($lv['versionMinorNumber']) ?></td>
                 </tr>
                 <tr>
                     <th>Depositante</th>
-                    <td><?= esc($cit[6]['value']) ?></td>
+                    <td><?php if (isset($cit[6]['value'])) { echo displayDV($cit[6]['value']); } ?></td>
                 </tr>
+                
                 <tr>
                     <th>Data de depósito</th>
-                    <td><?= esc($cit[7]['value']) ?></td>
+                    <td><?php if (isset($cit[7]['value'])) { echo displayDV($cit[7]['value']); } ?></td>
                 </tr>
             </table>
         </div>
+
+        
 
         <!-- AUTORES -->
         <div class="tab-pane fade" id="autores">

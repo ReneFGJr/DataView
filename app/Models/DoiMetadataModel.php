@@ -16,15 +16,17 @@ class DoiMetadataModel
 
         $DOI = substr($url, strpos($url, 'doi:')+4);
 
-        $response = $this->httpGet($apiUrl);
+        $response = $this->httpGet($apiUrl);        
         if (!$response) {
             return 'Erro ao acessar o Dataverse.';
         }
 
         $data = json_decode($response, true); // ← transforma em ARRAY
+        
         if (json_last_error() !== JSON_ERROR_NONE) {
             echo "Erro ao decodificar JSON: " . json_last_error_msg();
         }
+
         return view('widget/doi/dataverse_info', [
             'dataset' => $data['data'] ?? [],
             'url'     => $apiUrl,

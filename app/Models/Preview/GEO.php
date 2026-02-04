@@ -145,11 +145,35 @@ class GEO extends Model
                 $coords = $this->normalizeGeo($points);
                 return view('render/geo/mapa', ['coords' => $coords]);
             } else {
-                echo 'Latitude e Longitude não encontrados.';
+                return 'Latitude e Longitude não encontrados.';
             }
 
         }
 
+    }
+
+    function hasGeo($header)
+    {
+        $lat = ['latitude', 'lat', ' latitude', 'lat','decimallatitude'];
+        $long = ['longitude', 'long', ' longitude', 'long','decimallongitude'];
+
+        $ilat = -1;
+        $ilong = -1;
+        foreach ($header as $k => $v) {
+            $v = trim(strtolower($v));
+            if (in_array($v, $lat)) {
+                $ilat = $k;
+            }
+            if (in_array($v, $long)) {
+                $ilong = $k;
+            }
+        }
+
+        if (($ilat >= 0) and ($ilong >= 0)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function normalizeGeo($data)
