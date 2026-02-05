@@ -42,8 +42,11 @@ class GEO extends Model
 
     function indexIframe()
         {
-            pre($_POST,false);
-            pre($_GET, true);
+        $url = get("siteUrl");
+        $url .= 'dataview/view/geo?siteUrl=' . get("siteUrl");;
+        $url .= '&PID=' . get("PID");
+        $url .= '&datasetId=' . get("datasetId");
+        pre($url);
         }
 
     function index()
