@@ -44,8 +44,9 @@ class GEO extends Model
         {
             pre($_GET,false);
         $url = get("siteUrl");
-        $url .= 'dataview/view/geo?siteUrl=' . get("siteUrl");;
+        $url .= '/dataview/view/geo?siteUrl=' . get("siteUrl");;
         $url .= '&PID=' . get("PID");
+        $url .= '&datasetId=' . get("datasetId");
         $url .= '&fileid=' . get("fileid");
         pre($url);
         }
