@@ -40,6 +40,12 @@ class GEO extends Model
     protected $beforeDelete         = [];
     protected $afterDelete          = [];
 
+    function indexIframe()
+        {
+            pre($_POST,false);
+            pre($_GET, true);
+        }
+
     function index()
     {
         $Cache = new \App\Models\IO\Cache();
