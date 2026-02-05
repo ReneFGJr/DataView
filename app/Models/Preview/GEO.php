@@ -48,7 +48,7 @@ class GEO extends Model
         $url .= '&PID=' . get("PID");
         $url .= '&datasetId=' . get("datasetId");
         $url .= '&fileid=' . get("fileid");
-        pre($url);
+        return '<iframe src="' . $url . '" style="width:100%; height:600px; border:none;"></iframe>';
         }
 
     function index()
