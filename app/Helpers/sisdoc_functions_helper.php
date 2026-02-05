@@ -14,6 +14,19 @@ function dircheck($dir)
     return ($ok);
 }
 
+function get($key, $default = null)
+{
+    if (isset($_GET[$key])) {
+        return $_GET[$key];
+    } else {
+        if (isset($_POST[$key])) {
+            return $_POST[$key];
+        } else {
+            return $default;
+        }
+    }
+}
+
 function pre($dt, $force = true)
 {
     echo '<pre>';
