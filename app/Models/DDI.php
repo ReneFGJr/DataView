@@ -39,6 +39,7 @@ class DDI extends Model
     protected $afterFind            = [];
     protected $beforeDelete         = [];
     protected $afterDelete          = [];
+    public $urlAPI = '';
 
     public function  fetchFromDDI(string $url)
     {
@@ -56,6 +57,7 @@ class DDI extends Model
         //https://dataverse.ideal.ufpb.br/api/datasets/export?exporter=ddi&persistentId=doi:10.71650/DATAPB/YTSI2O
 
         $DOI = substr($url, strpos($url, 'doi:') + 4);
+        $this->urlAPI = $apiUrl;
 
         $response = $DoiMetadataModel->httpGet($apiUrl);
         if (!$response) {

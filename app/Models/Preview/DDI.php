@@ -40,6 +40,152 @@ class DDI extends Model
     protected $beforeDelete         = [];
     protected $afterDelete          = [];
 
+    /**
+     * Busca e faz parse de dados DDI do repositório Dataverse
+     */
+    public function fetchDDIData($persistentId)
+    {
+        if (empty($persistentId)) {
+            return [
+                'success' => false,
+                'error' => 'ID persistente não fornecido',
+                'ddiUrl' => '',
+                'files' => [],
+            ];
+        }
+
+        $ddiUrl = 'https://venus.brapci.inf.br/api/datasets/export?exporter=ddi&persistentId=' . rawurlencode($persistentId);
+
+        $ddiRaw = @file_get_contents(
+            $ddiUrl,
+            false,
+            stream_context_create([
+                'http' => [
+                    'timeout' => 15,
+                    'user_agent' => 'DataView/1.0',
+                ],
+            ])
+        );
+
+        if ($ddiRaw === false) {
+            return [
+                'success' => false,
+                'error' => 'Não foi possível obter os dados DDI neste momento',
+                'ddiUrl' => $ddiUrl,
+                'files' => [],
+            ];
+        }
+
+        libxml_use_internal_errors(true);
+        $ddiXml = simplexml_load_string($ddiRaw);
+
+        if ($ddiXml === false) {
+            return [
+                'success' => false,
+                'error' => 'Resposta DDI inválida para este dataset',
+                'ddiUrl' => $ddiUrl,
+                'files' => [],
+            ];
+        }
+
+        $files = $this->parseDDIFiles($ddiXml);
+
+        return [
+            'success' => true,
+            'ddiUrl' => $ddiUrl,
+            'files' => $files,
+        ];
+    }
+
+    /**
+     * Parse dos arquivos e variáveis do DDI
+     */
+    private function parseDDIFiles($ddiXml)
+    {
+        $files = [];
+        $fileNodes = $ddiXml->xpath('//*[local-name()="fileDscr"]') ?: [];
+
+        foreach ($fileNodes as $fileNode) {
+            $attrs = $fileNode->attributes();
+            $fileId = (string) ($attrs['ID'] ?? $attrs['id'] ?? '');
+
+            $fileNameNode = $fileNode->xpath('.//*[local-name()="fileName"]');
+            $fileTypeNode = $fileNode->xpath('.//*[local-name()="fileType"]');
+            $caseCountNode = $fileNode->xpath('.//*[local-name()="caseQnty"]');
+            $varCountNode = $fileNode->xpath('.//*[local-name()="varQnty"]');
+
+            $file = [
+                'id' => $fileId,
+                'name' => (string) ($fileNameNode[0] ?? '-'),
+                'type' => (string) ($fileTypeNode[0] ?? '-'),
+                'cases' => (string) ($caseCountNode[0] ?? '-'),
+                'vars' => (string) ($varCountNode[0] ?? '-'),
+                'variables' => $this->parseVariables($fileNode),
+            ];
+
+            $files[] = $file;
+        }
+
+        return $files;
+    }
+
+    /**
+     * Parse das variáveis de um arquivo DDI
+     */
+    private function parseVariables($fileNode)
+    {
+        $variables = [];
+        $varNodes = $fileNode->xpath('.//*[local-name()="var"]') ?: [];
+
+        foreach ($varNodes as $varNode) {
+            $attrs = $varNode->attributes();
+            $varId = (string) ($attrs['ID'] ?? $attrs['id'] ?? '');
+            $varName = (string) ($attrs['name'] ?? '');
+
+            $nameNode = $varNode->xpath('.//*[local-name()="labl"]');
+            $typeNode = $varNode->xpath('.//*[local-name()="varFormat"]');
+            $varTypeAttr = $typeNode[0]->attributes() ?? null;
+            $varType = isset($varTypeAttr['type']) ? (string) $varTypeAttr['type'] : 'character';
+
+            // Obter localização das categorias de codificação
+            $catgryNodes = $varNode->xpath('.//*[local-name()="catgry"]') ?: [];
+            $categories = [];
+            foreach ($catgryNodes as $catgry) {
+                $catValNode = $catgry->xpath('.//*[local-name()="catValu"]');
+                $catTxtNode = $catgry->xpath('.//*[local-name()="labl"]');
+                if (!empty($catValNode) && !empty($catTxtNode)) {
+                    $categories[] = [
+                        'value' => (string) $catValNode[0],
+                        'label' => (string) $catTxtNode[0],
+                    ];
+                }
+            }
+
+            // Obter estatísticas simples
+            $summStatNode = $varNode->xpath('.//*[local-name()="sumStat"]');
+            $stats = [];
+            foreach ($summStatNode as $stat) {
+                $statAttr = $stat->attributes() ?? null;
+                if (isset($statAttr['type'])) {
+                    $statType = (string) $statAttr['type'];
+                    $statValue = (string) $stat;
+                    $stats[$statType] = $statValue;
+                }
+            }
+
+            $variables[] = [
+                'id' => $varId,
+                'name' => $varName,
+                'label' => (string) ($nameNode[0] ?? $varName),
+                'type' => $varType,
+                'categories' => $categories,
+                'stats' => $stats,
+            ];
+        }
+
+        return $variables;
+    }
+
     function hichart_pie($div='grapho',$data=array())
     {
         if (count($data) == 0)

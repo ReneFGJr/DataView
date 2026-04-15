@@ -38,41 +38,8 @@ if ($persistentId === '' && !empty($ds['authority']) && !empty($ds['identifier']
     $persistentId = 'doi:' . $ds['authority'] . '/' . $ds['identifier'];
 }
 
-$ddiUrl = '';
 $ddiFiles = [];
 $ddiError = '';
-
-
-if ($persistentId !== '') {
-    $DDIModel = new \App\Models\DDI();
-
-        libxml_use_internal_errors(true);
-        $ddiXml = $DDIModel->fetchFromDDI($url);
-
-        if ($ddiXml === false) {
-            $ddiError = 'Resposta DDI inválida para este dataset.';
-        } else {
-            $fileNodes = $ddiXml->xpath('//*[local-name()="fileDscr"]') ?: [];
-
-            foreach ($fileNodes as $fileNode) {
-                $attrs = $fileNode->attributes();
-                $fileId = (string) ($attrs['ID'] ?? $attrs['id'] ?? '');
-
-                $fileNameNode = $fileNode->xpath('.//*[local-name()="fileName"]');
-                $fileTypeNode = $fileNode->xpath('.//*[local-name()="fileType"]');
-                $caseCountNode = $fileNode->xpath('.//*[local-name()="caseQnty"]');
-                $varCountNode = $fileNode->xpath('.//*[local-name()="varQnty"]');
-
-                $ddiFiles[] = [
-                    'id' => $fileId,
-                    'name' => (string) ($fileNameNode[0] ?? '-'),
-                    'type' => (string) ($fileTypeNode[0] ?? '-'),
-                    'cases' => (string) ($caseCountNode[0] ?? '-'),
-                    'vars' => (string) ($varCountNode[0] ?? '-'),
-                ];
-            }
-        }
-    }
 ?>
 
 <div class="container my-4">
@@ -230,46 +197,10 @@ if ($persistentId !== '') {
 
         <!-- DDI -->
         <div class="tab-pane fade" id="ddi">
-            <?php if ($ddiUrl !== ''): ?>
-                <p class="mb-3">
-                    <a class="btn btn-outline-primary btn-sm" href="<?= esc($ddiUrl) ?>" target="_blank">
-                        Abrir DDI bruto (XML)
-                    </a>
-                </p>
-            <?php endif; ?>
-
-            <?php if ($ddiError !== ''): ?>
-                <div class="alert alert-warning mb-0">
-                    <?= esc($ddiError) ?>
-                </div>
-            <?php elseif (empty($ddiFiles)): ?>
-                <div class="alert alert-info mb-0">
-                    Nenhum arquivo encontrado no DDI para este dataset.
-                </div>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped align-middle">
-                        <thead>
-                            <tr>
-                                <th>Arquivo</th>
-                                <th>Tipo</th>
-                                <th>Casos</th>
-                                <th>Variáveis</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($ddiFiles as $ddiFile): ?>
-                                <tr>
-                                    <td><?= esc($ddiFile['name']) ?></td>
-                                    <td><?= esc($ddiFile['type']) ?></td>
-                                    <td><?= esc($ddiFile['cases']) ?></td>
-                                    <td><?= esc($ddiFile['vars']) ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
+            <?php echo view('render/ddi/ddi', [
+                'ddiFiles' => $ddiFiles,
+                'ddiError' => $ddiError
+            ]); ?>
         </div>
 
         <!-- LICENÇA -->

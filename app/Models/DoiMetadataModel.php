@@ -19,6 +19,7 @@ class DoiMetadataModel
         $DOI = substr($url, strpos($url, 'doi:')+4);
 
         $DDIfile = $DDI->fetchFromDDI($url);
+        $urlDDI = $DDI->urlAPI;
 
         $response = $DoiMetadataModel->httpGet($apiUrl);
         if (!$response) {
@@ -35,7 +36,8 @@ class DoiMetadataModel
             'dataset' => $data['data'] ?? [],
             'url'     => $apiUrl,
             'DOI'     => $DOI ?? '',
-            'DDI'     => $DDIfile ?? ''
+            'DDI'     => $DDIfile ?? '',
+            'ddiUrl' => $urlDDI ?? ''
         ]);
     }
 
