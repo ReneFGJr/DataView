@@ -120,57 +120,91 @@
                                         <?php if (!empty($variable['stats'])): ?>
                                             <div class="p-3 border-top bg-light">
                                                 <h6 class="mb-3">
-                                                    <i class="bi bi-graph-up"></i> Estatísticas
+                                                    <i class="bi bi-graph-up"></i>
+                                                    <strong>Resumo Estatístico</strong>
                                                 </h6>
-                                                <div class="row">
+                                                <div class="row g-2">
                                                     <?php
                                                         $statLabels = [
-                                                            'min' => 'Mínimo',
-                                                            'max' => 'Máximo',
-                                                            'mean' => 'Média',
-                                                            'median' => 'Mediana',
-                                                            'mode' => 'Moda',
-                                                            'stdev' => 'Desvio Padrão',
-                                                            'variance' => 'Variância',
-                                                            'vald' => 'Valores Válidos',
-                                                            'invd' => 'Valores Inválidos',
+                                                            'min' => ['Mínimo', 'bi-arrow-down-circle', 'primary'],
+                                                            'max' => ['Máximo', 'bi-arrow-up-circle', 'danger'],
+                                                            'mean' => ['Média', 'bi-graph-up', 'success'],
+                                                            'median' => ['Mediana', 'bi-diagram-2', 'info'],
+                                                            'mode' => ['Moda', 'bi-bar-chart', 'warning'],
+                                                            'stdev' => ['Desvio Padrão', 'bi-scatter', 'secondary'],
+                                                            'variance' => ['Variância', 'bi-diagram-3', 'secondary'],
+                                                            'vald' => ['Válidos', 'bi-check-circle', 'success'],
+                                                            'invd' => ['Inválidos', 'bi-x-circle', 'danger'],
                                                         ];
                                                     ?>
                                                     <?php foreach ($variable['stats'] as $statType => $statValue): ?>
-                                                        <div class="col-md-6 mb-2">
-                                                            <small class="text-muted">
-                                                                <?= esc($statLabels[$statType] ?? ucfirst(str_replace('_', ' ', $statType))) ?>:
-                                                            </small>
-                                                            <br>
-                                                            <strong><?= esc($statValue) ?></strong>
+                                                        <?php
+                                                            $stat = $statLabels[$statType] ?? [$statType, 'bi-info-circle', 'secondary'];
+                                                            list($label, $icon, $color) = $stat;
+                                                        ?>
+                                                        <div class="col-md-6 col-lg-4">
+                                                            <div class="card border-<?= $color ?> bg-white mb-0">
+                                                                <div class="card-body p-2">
+                                                                    <small class="text-muted">
+                                                                        <i class="bi <?= $icon ?>"></i>
+                                                                        <?= esc($label) ?>
+                                                                    </small>
+                                                                    <div class="mt-1">
+                                                                        <strong class="text-<?= $color ?>">
+                                                                            <?php
+                                                                                $val = esc($statValue);
+                                                                                // Limita para não quebrar layout
+                                                                                if (strlen($val) > 30) {
+                                                                                    $val = substr($val, 0, 27) . '...';
+                                                                                }
+                                                                                echo $val;
+                                                                            ?>
+                                                                        </strong>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     <?php endforeach; ?>
                                                 </div>
                                             </div>
                                         <?php endif; ?>
 
-                                        <!-- Dicionário de Dados (Categorias) -->
+                                        <!-- Dicionário de Dados (Categorias/Classes) -->
                                         <?php if (!empty($variable['categories'])): ?>
                                             <div class="p-3 border-top">
                                                 <h6 class="mb-3">
-                                                    <i class="bi bi-list"></i> Dicionário de Dados
-                                                    <span class="badge bg-info"><?= count($variable['categories']) ?> categorias</span>
+                                                    <i class="bi bi-list-check"></i>
+                                                    <strong>Classificação/Dicionário de Dados</strong>
+                                                    <span class="badge bg-info ms-2"><?= count($variable['categories']) ?> classe(s)</span>
                                                 </h6>
                                                 <div class="table-responsive">
-                                                    <table class="table table-sm table-striped">
+                                                    <table class="table table-sm table-hover border">
                                                         <thead>
-                                                            <tr class="table-light">
-                                                                <th style="width: 30%">Valor</th>
-                                                                <th>Descrição/Rótulo</th>
+                                                            <tr class="table-dark text-white">
+                                                                <th style="width: 25%" class="text-center">
+                                                                    <i class="bi bi-key"></i> Código
+                                                                </th>
+                                                                <th style="width: 75%">
+                                                                    <i class="bi bi-tag"></i> Descrição
+                                                                </th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            <?php foreach ($variable['categories'] as $category): ?>
-                                                                <tr>
-                                                                    <td>
-                                                                        <code class="bg-light p-2"><?= esc($category['value']) ?></code>
+                                                            <?php
+                                                                $catIndex = 0;
+                                                                foreach ($variable['categories'] as $category):
+                                                                    $catIndex++;
+                                                                    $bgClass = $catIndex % 2 === 0 ? 'table-light' : '';
+                                                            ?>
+                                                                <tr class="<?= $bgClass ?>">
+                                                                    <td class="text-center align-middle">
+                                                                        <code class="bg-light p-2 rounded">
+                                                                            <strong><?= esc($category['value']) ?></strong>
+                                                                        </code>
                                                                     </td>
-                                                                    <td><?= esc($category['label']) ?></td>
+                                                                    <td class="align-middle">
+                                                                        <?= esc($category['label']) ?>
+                                                                    </td>
                                                                 </tr>
                                                             <?php endforeach; ?>
                                                         </tbody>
