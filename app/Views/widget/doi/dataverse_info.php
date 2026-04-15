@@ -141,17 +141,21 @@ if (!empty($DDI)) {
 
         <!-- AUTORES -->
         <div class="tab-pane fade" id="autores">
-            <?php foreach ($cit[1]['value'] as $a): ?>
-                <div class="border rounded p-3 mb-2">
-                    <strong><?= esc($a['authorName']['value']) ?></strong><br>
-                    <small><?= esc($a['authorAffiliation']['value'] ?? '-') ?></small><br>
-                    <?php if (!empty($a['authorIdentifier']['value'])): ?>
-                        <a href="<?= esc($a['authorIdentifier']['value']) ?>" target="_blank">
-                            ORCID
-                        </a>
-                    <?php endif; ?>
-                </div>
-            <?php endforeach; ?>
+            <?php if (is_array($cit[1]['value']) && !empty($cit[1]['value'])): ?>
+                <?php foreach ($cit[1]['value'] as $a): ?>
+                    <div class="border rounded p-3 mb-2">
+                        <strong><?= esc($a['authorName']['value'] ?? '-') ?></strong><br>
+                        <small><?= esc($a['authorAffiliation']['value'] ?? '-') ?></small><br>
+                        <?php if (!empty($a['authorIdentifier']['value'])): ?>
+                            <a href="<?= esc($a['authorIdentifier']['value']) ?>" target="_blank">
+                                ORCID
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p class="text-muted">Autores não disponíveis</p>
+            <?php endif; ?>
         </div>
 
         <!-- DESCRIÇÃO -->

@@ -96,24 +96,53 @@ class Dataview extends BaseController
     {
         $DataViewer = new \App\Models\DataViewer();
         $DDImodel = new \App\Models\DDI();
+        $DoiMetadataModel = new \App\Models\DoiMetadataModel();
+        $sx = '';
 
         $doi = $this->request->getVar("doi");
         if ($doi != '') {
-            $DoiMetadataModel = new \App\Models\DoiMetadataModel();
-            $result = $DoiMetadataModel->fetchDoiMetadata($doi);
-            if (isset($result['metadata'])) {
-                if (isset($result['metadata']['url'])) {
-                    $url = $result['metadata']['url'];
+
+            if (strpos($doi,'doi.org')){
+
+                $result = $DoiMetadataModel->fetchDoiMetadata($doi);
+                if (isset($result['metadata'])) {
+                    if (isset($result['metadata']['url'])) {
+                        $url = $result['metadata']['url'];
+                        $sx = $this->cab();
+                        $sx .= $DoiMetadataModel->fetchFromDataverse($url);
+                    }
+                } else {
                     $sx = $this->cab();
-                    $sx .= $DoiMetadataModel->fetchFromDataverse($url);
+                    $sx .= view('widget/doi/datacite_info', [
+                        'source'   => $result['source'],
+                        'doi'      => $result['doi'],
+                        'metadata' => $result['metadata']
+                    ]);
                 }
             } else {
-                $sx = $this->cab();
-                $sx .= view('widget/doi/datacite_info', [
-                    'source'   => $result['source'],
-                    'doi'      => $result['doi'],
-                    'metadata' => $result['metadata']
-                ]);
+                /**************** URL/DOI direto do Dataverse */
+                $result = $DDImodel->fetchFromDDI($doi);
+
+                // Processar dados DDI coletados
+                if (!empty($result)) {
+                    $ddiData = $this->processDDIData($result);
+                    pre($ddiData);
+
+                    if ($ddiData['success'] && isset($ddiData['url'])) {
+                        $sx = $this->cab();
+                        $sx .= $DoiMetadataModel->fetchFromDataverse($ddiData['url']);
+                    } else {
+                        $sx = $this->cab();
+                        $sx .= view('widget/error', [
+                            'message' => 'Não foi possível processar os dados DDI'
+                        ]);
+                    }
+                } else {
+                    $sx = $this->cab();
+                    $sx .= view('widget/error', [
+                        'message' => 'Erro ao obter dados do repositório'
+                    ]);
+                }
             }
         } else {
             $sx = $this->cab();
@@ -220,5 +249,99 @@ class Dataview extends BaseController
         $tela .= '</div>';
         $tela .= $DataViewerAdmin->index($d1, $d2, $d3);
         return $tela;
+    }
+
+    /**
+     * Processa dados DDI (SimpleXMLElement) e retorna estrutura padronizada
+     */
+    private function processDDIData($ddiXml)
+    {
+        if (empty($ddiXml)) {
+            return [
+                'success' => false,
+                'error' => 'XML DDI vazio',
+                'url' => ''
+            ];
+        }
+
+        // Extrair informações do docDscr
+        $title = '';
+        $doi = '';
+        $publisher = '';
+        $year = '';
+
+        if (isset($ddiXml->docDscr)) {
+            $docDscr = $ddiXml->docDscr;
+
+            if (isset($docDscr->citation->titlStmt->titl)) {
+                $title = (string) $docDscr->citation->titlStmt->titl;
+            }
+
+            if (isset($docDscr->citation->titlStmt->IDNo)) {
+                $doi = (string) $docDscr->citation->titlStmt->IDNo;
+            }
+
+            if (isset($docDscr->citation->distStmt->distrbtr)) {
+                $publisher = (string) $docDscr->citation->distStmt->distrbtr;
+            }
+
+            if (isset($docDscr->citation->distStmt->distDate)) {
+                $dateStr = (string) $docDscr->citation->distStmt->distDate;
+                $year = substr($dateStr, 0, 4);
+            }
+        }
+
+        // Extrair autores do stdyDscr
+        $authors = [];
+        if (isset($ddiXml->stdyDscr->citation->rspStmt)) {
+            $rspStmt = $ddiXml->stdyDscr->citation->rspStmt;
+
+            // AuthEnty pode ser um único elemento ou array
+            $authEnties = isset($rspStmt->AuthEnty) ? (is_array($rspStmt->AuthEnty) ? $rspStmt->AuthEnty : [$rspStmt->AuthEnty]) : [];
+
+            foreach ($authEnties as $auth) {
+                $authors[] = (string) $auth;
+            }
+        }
+
+        // Extrair URL do Dataverse a partir de fileDscr
+        $dataverseUrl = '';
+        $persistentId = '';
+
+        if (isset($ddiXml->fileDscr)) {
+            $fileDscr = is_array($ddiXml->fileDscr) ? $ddiXml->fileDscr[0] : $ddiXml->fileDscr;
+
+            if (isset($fileDscr['URI'])) {
+                $fileUri = (string) $fileDscr['URI'];
+                // Extrair URL base do Dataverse da URI do arquivo
+                // Ex: https://venus.brapci.inf.br/api/access/datafile/456
+                $parsed = parse_url($fileUri);
+                $dataverseUrl = ($parsed['scheme'] ?? 'https') . '://' . ($parsed['host'] ?? '');
+            }
+        }
+
+        // Usar holding URI se disponível
+        if (empty($dataverseUrl) && isset($ddiXml->stdyDscr->citation->holdings['URI'])) {
+            $holdingUri = (string) $ddiXml->stdyDscr->citation->holdings['URI'];
+            $parsed = parse_url($holdingUri);
+            $dataverseUrl = ($parsed['scheme'] ?? 'https') . '://' . ($parsed['host'] ?? '');
+        }
+
+        // Montar URL de citação para fetchFromDataverse
+        $citationUrl = '';
+        if (!empty($dataverseUrl) && !empty($doi)) {
+            $citationUrl = $dataverseUrl . '/citation?persistentId=' . $doi;
+        }
+
+        return [
+            'success' => !empty($citationUrl),
+            'error' => empty($citationUrl) ? 'Não foi possível extrair a URL do Dataverse' : '',
+            'url' => $citationUrl,
+            'title' => $title,
+            'doi' => $doi,
+            'authors' => $authors,
+            'publisher' => $publisher,
+            'year' => $year,
+        ];
     }
 }
