@@ -95,6 +95,8 @@ class Dataview extends BaseController
     function dataset()
     {
         $DataViewer = new \App\Models\DataViewer();
+        $DDImodel = new \App\Models\DDI();
+
         $doi = $this->request->getVar("doi");
         if ($doi != '') {
             $DoiMetadataModel = new \App\Models\DoiMetadataModel();

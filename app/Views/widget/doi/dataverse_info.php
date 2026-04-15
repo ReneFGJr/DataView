@@ -2,6 +2,89 @@
 $ds  = $dataset;
 $lv  = $ds['latestVersion'];
 $cit = $lv['metadataBlocks']['citation']['fields'];
+
+// Preparar dados DDI
+$persistentUrl = $ds['persistentUrl'] ?? '';
+$persistentId = '';
+
+if ($persistentUrl !== '') {
+    $parsedUrl = parse_url($persistentUrl);
+
+    if (!empty($parsedUrl['query'])) {
+        $queryParams = [];
+        parse_str($parsedUrl['query'], $queryParams);
+        if (!empty($queryParams['persistentId'])) {
+            $persistentId = (string) $queryParams['persistentId'];
+        }
+    }
+
+    if ($persistentId === '' && !empty($parsedUrl['path'])) {
+        $path = trim((string) $parsedUrl['path'], '/');
+        if ($path !== '') {
+            if (stripos($path, 'doi:') === 0) {
+                $persistentId = $path;
+            } elseif (stripos($path, '10.') === 0) {
+                $persistentId = 'doi:' . $path;
+            }
+        }
+    }
+}
+
+if ($persistentId === '') {
+    $persistentId = $ds['globalId'] ?? '';
+}
+
+if ($persistentId === '' && !empty($ds['authority']) && !empty($ds['identifier'])) {
+    $persistentId = 'doi:' . $ds['authority'] . '/' . $ds['identifier'];
+}
+
+$ddiUrl = '';
+$ddiFiles = [];
+$ddiError = '';
+
+if ($persistentId !== '') {
+    $ddiUrl = 'https://venus.brapci.inf.br/api/datasets/export?exporter=ddi&persistentId=' . rawurlencode($persistentId);
+    $ddiRaw = @file_get_contents(
+        $ddiUrl,
+        false,
+        stream_context_create([
+            'http' => [
+                'timeout' => 10,
+            ],
+        ])
+    );
+
+    if ($ddiRaw === false) {
+        $ddiError = 'Não foi possível obter os dados DDI neste momento.';
+    } else {
+        libxml_use_internal_errors(true);
+        $ddiXml = simplexml_load_string($ddiRaw);
+
+        if ($ddiXml === false) {
+            $ddiError = 'Resposta DDI inválida para este dataset.';
+        } else {
+            $fileNodes = $ddiXml->xpath('//*[local-name()="fileDscr"]') ?: [];
+
+            foreach ($fileNodes as $fileNode) {
+                $attrs = $fileNode->attributes();
+                $fileId = (string) ($attrs['ID'] ?? $attrs['id'] ?? '');
+
+                $fileNameNode = $fileNode->xpath('.//*[local-name()="fileName"]');
+                $fileTypeNode = $fileNode->xpath('.//*[local-name()="fileType"]');
+                $caseCountNode = $fileNode->xpath('.//*[local-name()="caseQnty"]');
+                $varCountNode = $fileNode->xpath('.//*[local-name()="varQnty"]');
+
+                $ddiFiles[] = [
+                    'id' => $fileId,
+                    'name' => (string) ($fileNameNode[0] ?? '-'),
+                    'type' => (string) ($fileTypeNode[0] ?? '-'),
+                    'cases' => (string) ($caseCountNode[0] ?? '-'),
+                    'vars' => (string) ($varCountNode[0] ?? '-'),
+                ];
+            }
+        }
+    }
+}
 ?>
 
 <div class="container my-4">
@@ -50,11 +133,14 @@ $cit = $lv['metadataBlocks']['citation']['fields'];
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#arquivos">Arquivos</button>
         </li>
         <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ddi">DDI</button>
+        </li>
+        <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#licenca">Licença</button>
         </li>
     </ul>
 
-    <div class="tab-content border border-top-0 p-4 bg-white shadow-sm">        
+    <div class="tab-content border border-top-0 p-4 bg-white shadow-sm">
         <!-- VISÃO GERAL -->
         <div class="tab-pane fade show active" id="geral">
             <table class="table table-sm">
@@ -66,7 +152,7 @@ $cit = $lv['metadataBlocks']['citation']['fields'];
                     <th>UNF</th>
                     <td><?php if (isset($lv['UNF'])) { echo displayDV($lv['UNF']); } ?></td>
                 </tr>
-                
+
                 <tr>
                     <th>Versão</th>
                     <td><?= esc($lv['versionNumber']) ?>.<?= displayDV($lv['versionMinorNumber']) ?></td>
@@ -75,7 +161,7 @@ $cit = $lv['metadataBlocks']['citation']['fields'];
                     <th>Depositante</th>
                     <td><?php if (isset($cit[6]['value'])) { echo displayDV($cit[6]['value']); } ?></td>
                 </tr>
-                
+
                 <tr>
                     <th>Data de depósito</th>
                     <td><?php if (isset($cit[7]['value'])) { echo displayDV($cit[7]['value']); } ?></td>
@@ -83,7 +169,7 @@ $cit = $lv['metadataBlocks']['citation']['fields'];
             </table>
         </div>
 
-        
+
 
         <!-- AUTORES -->
         <div class="tab-pane fade" id="autores">
@@ -152,6 +238,50 @@ $cit = $lv['metadataBlocks']['citation']['fields'];
                     </div>
                 </div>
             <?php endforeach; ?>
+        </div>
+
+        <!-- DDI -->
+        <div class="tab-pane fade" id="ddi">
+            <?php if ($ddiUrl !== ''): ?>
+                <p class="mb-3">
+                    <a class="btn btn-outline-primary btn-sm" href="<?= esc($ddiUrl) ?>" target="_blank">
+                        Abrir DDI bruto (XML)
+                    </a>
+                </p>
+            <?php endif; ?>
+
+            <?php if ($ddiError !== ''): ?>
+                <div class="alert alert-warning mb-0">
+                    <?= esc($ddiError) ?>
+                </div>
+            <?php elseif (empty($ddiFiles)): ?>
+                <div class="alert alert-info mb-0">
+                    Nenhum arquivo encontrado no DDI para este dataset.
+                </div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Arquivo</th>
+                                <th>Tipo</th>
+                                <th>Casos</th>
+                                <th>Variáveis</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($ddiFiles as $ddiFile): ?>
+                                <tr>
+                                    <td><?= esc($ddiFile['name']) ?></td>
+                                    <td><?= esc($ddiFile['type']) ?></td>
+                                    <td><?= esc($ddiFile['cases']) ?></td>
+                                    <td><?= esc($ddiFile['vars']) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
         </div>
 
         <!-- LICENÇA -->
