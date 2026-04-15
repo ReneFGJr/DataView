@@ -1,18 +1,18 @@
 <?php if ($ddiUrl !== ''): ?>
     <p class="mb-3">
-        <a class="btn btn-outline-primary btn-sm" href="<?= esc($ddiUrl) ?>" target="_blank">
-            Abrir DDI bruto (XML)
+        <a class="btn btn-outline-primary btn-sm" href="<?= esc($ddiUrl) ?>" target="_blank" title="Abrir o arquivo DDI em XML bruto">
+            <i class="bi bi-download"></i> DDI XML Bruto
         </a>
     </p>
 <?php endif; ?>
 
 <?php if ($ddiError !== ''): ?>
     <div class="alert alert-warning mb-0">
-        <?= esc($ddiError) ?>
+        <strong>Aviso:</strong> <?= esc($ddiError) ?>
     </div>
 <?php elseif (empty($ddiFiles)): ?>
     <div class="alert alert-info mb-0">
-        Nenhum arquivo encontrado no DDI para este dataset.
+        <strong>Informação:</strong> Nenhum arquivo com variáveis encontrado no DDI para este dataset.
     </div>
 <?php else: ?>
     <!-- Abas para cada arquivo -->
@@ -68,8 +68,11 @@
                                         data-bs-target="#var-<?= $fileIndex ?>-<?= $varIndex ?>">
                                         <strong><?= esc($variable['label']) ?></strong>
                                         <span class="ms-2 text-muted small">
-                                            (<?= esc($variable['name']) ?>) -
-                                            <span class="badge bg-secondary"><?= esc($variable['type']) ?></span>
+                                            (<?= esc($variable['name']) ?>)
+                                            <span class="badge bg-secondary ms-1"><?= esc($variable['type']) ?></span>
+                                            <?php if (!empty($variable['categories'])): ?>
+                                                <span class="badge bg-info ms-1"><?= count($variable['categories']) ?> valores</span>
+                                            <?php endif; ?>
                                         </span>
                                     </button>
                                 </h2>
@@ -78,23 +81,36 @@
                                     data-bs-parent="#accordion-file-<?= $fileIndex ?>">
                                     <div class="accordion-body p-0">
                                         <div class="table-responsive">
-                                            <table class="table table-sm mb-0">
+                                            <table class="table table-sm mb-0 table-hover">
                                                 <tbody>
-                                                    <tr>
-                                                        <th style="width: 15%">ID:</th>
-                                                        <td><?= esc($variable['id']) ?></td>
+                                                    <tr class="table-light">
+                                                        <th style="width: 20%">ID:</th>
+                                                        <td><code><?= esc($variable['id']) ?></code></td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Nome:</th>
-                                                        <td><?= esc($variable['name']) ?></td>
+                                                        <th>Nome da Variável:</th>
+                                                        <td><code><?= esc($variable['name']) ?></code></td>
                                                     </tr>
                                                     <tr>
                                                         <th>Descrição:</th>
                                                         <td><?= esc($variable['label']) ?></td>
                                                     </tr>
-                                                    <tr>
-                                                        <th>Tipo:</th>
-                                                        <td><?= esc($variable['type']) ?></td>
+                                                    <tr class="table-light">
+                                                        <th>Tipo de Dados:</th>
+                                                        <td>
+                                                            <span class="badge bg-secondary">
+                                                                <?php
+                                                                    $typeLabel = $variable['type'];
+                                                                    switch($variable['type']) {
+                                                                        case 'numeric': $typeLabel = 'Numérico'; break;
+                                                                        case 'character': $typeLabel = 'Texto'; break;
+                                                                        case 'date': $typeLabel = 'Data'; break;
+                                                                        case 'time': $typeLabel = 'Hora'; break;
+                                                                    }
+                                                                ?>
+                                                                <?= esc($typeLabel) ?>
+                                                            </span>
+                                                        </td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -102,21 +118,33 @@
 
                                         <!-- Estatísticas -->
                                         <?php if (!empty($variable['stats'])): ?>
-                                            <div class="p-3 border-top">
-                                                <h6 class="mb-2">Estatísticas:</h6>
-                                                <div class="table-responsive">
-                                                    <table class="table table-sm table-hover">
-                                                        <tbody>
-                                                            <?php foreach ($variable['stats'] as $statType => $statValue): ?>
-                                                                <tr>
-                                                                    <td style="width: 40%">
-                                                                        <strong><?= esc(ucfirst(str_replace('_', ' ', $statType))) ?>:</strong>
-                                                                    </td>
-                                                                    <td><?= esc($statValue) ?></td>
-                                                                </tr>
-                                                            <?php endforeach; ?>
-                                                        </tbody>
-                                                    </table>
+                                            <div class="p-3 border-top bg-light">
+                                                <h6 class="mb-3">
+                                                    <i class="bi bi-graph-up"></i> Estatísticas
+                                                </h6>
+                                                <div class="row">
+                                                    <?php
+                                                        $statLabels = [
+                                                            'min' => 'Mínimo',
+                                                            'max' => 'Máximo',
+                                                            'mean' => 'Média',
+                                                            'median' => 'Mediana',
+                                                            'mode' => 'Moda',
+                                                            'stdev' => 'Desvio Padrão',
+                                                            'variance' => 'Variância',
+                                                            'vald' => 'Valores Válidos',
+                                                            'invd' => 'Valores Inválidos',
+                                                        ];
+                                                    ?>
+                                                    <?php foreach ($variable['stats'] as $statType => $statValue): ?>
+                                                        <div class="col-md-6 mb-2">
+                                                            <small class="text-muted">
+                                                                <?= esc($statLabels[$statType] ?? ucfirst(str_replace('_', ' ', $statType))) ?>:
+                                                            </small>
+                                                            <br>
+                                                            <strong><?= esc($statValue) ?></strong>
+                                                        </div>
+                                                    <?php endforeach; ?>
                                                 </div>
                                             </div>
                                         <?php endif; ?>
@@ -124,20 +152,23 @@
                                         <!-- Dicionário de Dados (Categorias) -->
                                         <?php if (!empty($variable['categories'])): ?>
                                             <div class="p-3 border-top">
-                                                <h6 class="mb-2">Dicionário de Dados:</h6>
+                                                <h6 class="mb-3">
+                                                    <i class="bi bi-list"></i> Dicionário de Dados
+                                                    <span class="badge bg-info"><?= count($variable['categories']) ?> categorias</span>
+                                                </h6>
                                                 <div class="table-responsive">
-                                                    <table class="table table-sm table-condensed">
+                                                    <table class="table table-sm table-striped">
                                                         <thead>
                                                             <tr class="table-light">
-                                                                <th>Valor</th>
-                                                                <th>Rótulo</th>
+                                                                <th style="width: 30%">Valor</th>
+                                                                <th>Descrição/Rótulo</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <?php foreach ($variable['categories'] as $category): ?>
                                                                 <tr>
                                                                     <td>
-                                                                        <code><?= esc($category['value']) ?></code>
+                                                                        <code class="bg-light p-2"><?= esc($category['value']) ?></code>
                                                                     </td>
                                                                     <td><?= esc($category['label']) ?></td>
                                                                 </tr>

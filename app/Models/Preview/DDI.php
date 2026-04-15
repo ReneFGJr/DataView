@@ -43,35 +43,53 @@ class DDI extends Model
     /**
      * Busca e faz parse de dados DDI do repositório Dataverse
      */
-    public function fetchDDIData($persistentId)
+    public function fetchDDIData($persistentId, $dataverseUrl = 'https://dataverse.ideal.ufpb.br')
     {
         if (empty($persistentId)) {
             return [
                 'success' => false,
                 'error' => 'ID persistente não fornecido',
                 'ddiUrl' => '',
+                'metadata' => [],
+                'study' => [],
                 'files' => [],
             ];
         }
 
-        $ddiUrl = 'https://venus.brapci.inf.br/api/datasets/export?exporter=ddi&persistentId=' . rawurlencode($persistentId);
+        // Tentar URL customizada primeiro, depois URL padrão
+        $urls = [
+            $dataverseUrl . '/api/datasets/export?exporter=ddi&persistentId=' . rawurlencode($persistentId),
+            'https://dataverse.ideal.ufpb.br/api/datasets/export?exporter=ddi&persistentId=' . rawurlencode($persistentId),
+            'https://venus.brapci.inf.br/api/datasets/export?exporter=ddi&persistentId=' . rawurlencode($persistentId),
+        ];
 
-        $ddiRaw = @file_get_contents(
-            $ddiUrl,
-            false,
-            stream_context_create([
-                'http' => [
-                    'timeout' => 15,
-                    'user_agent' => 'DataView/1.0',
-                ],
-            ])
-        );
+        $ddiRaw = null;
+        $ddiUrl = '';
 
-        if ($ddiRaw === false) {
+        foreach ($urls as $url) {
+            $ddiRaw = @file_get_contents(
+                $url,
+                false,
+                stream_context_create([
+                    'http' => [
+                        'timeout' => 15,
+                        'user_agent' => 'DataView/1.0',
+                    ],
+                ])
+            );
+            if ($ddiRaw !== false && !empty($ddiRaw)) {
+                $ddiUrl = $url;
+                break;
+            }
+        }
+
+        if ($ddiRaw === false || empty($ddiRaw)) {
             return [
                 'success' => false,
                 'error' => 'Não foi possível obter os dados DDI neste momento',
                 'ddiUrl' => $ddiUrl,
+                'metadata' => [],
+                'study' => [],
                 'files' => [],
             ];
         }
@@ -84,27 +102,197 @@ class DDI extends Model
                 'success' => false,
                 'error' => 'Resposta DDI inválida para este dataset',
                 'ddiUrl' => $ddiUrl,
+                'metadata' => [],
+                'study' => [],
                 'files' => [],
             ];
         }
 
+        return $this->parseDDIXml($ddiXml, $ddiUrl);
+    }
+
+    /**
+     * Parse um XML DDI já carregado (SimpleXMLElement)
+     */
+    public function parseDDIXml($ddiXml, $ddiUrl = '')
+    {
+        if ($ddiXml === null || $ddiXml === false) {
+            return [
+                'success' => false,
+                'error' => 'XML DDI inválido',
+                'ddiUrl' => $ddiUrl,
+                'metadata' => [],
+                'study' => [],
+                'files' => [],
+            ];
+        }
+
+        $metadata = $this->parseDocDscr($ddiXml);
+        $study = $this->parseStdyDscr($ddiXml);
         $files = $this->parseDDIFiles($ddiXml);
 
         return [
             'success' => true,
             'ddiUrl' => $ddiUrl,
+            'metadata' => $metadata,
+            'study' => $study,
             'files' => $files,
         ];
     }
 
     /**
+     * Parse de metadados do documento (docDscr)
+     */
+    private function parseDocDscr($ddiXml)
+    {
+        $metadata = [
+            'title' => '',
+            'doi' => '',
+            'distributor' => '',
+            'date' => '',
+            'version' => '',
+            'citation' => '',
+        ];
+
+        $docDscr = $ddiXml->xpath('//*[local-name()="docDscr"]');
+        if (empty($docDscr)) {
+            return $metadata;
+        }
+
+        $docNode = $docDscr[0];
+
+        // Título
+        $titleNode = $docNode->xpath('.//*[local-name()="titl"]');
+        if (!empty($titleNode)) {
+            $metadata['title'] = (string) $titleNode[0];
+        }
+
+        // DOI
+        $idnoNode = $docNode->xpath('.//*[local-name()="IDNo"]');
+        foreach ($idnoNode as $node) {
+            if ((string) $node === (string) $node && strpos((string) $node, '10.') !== false) {
+                $metadata['doi'] = (string) $node;
+                break;
+            }
+        }
+
+        // Distribuidor e Data
+        $distStmt = $docNode->xpath('.//*[local-name()="distStmt"]');
+        if (!empty($distStmt)) {
+            $distrbtr = $distStmt[0]->xpath('.//*[local-name()="distrbtr"]');
+            if (!empty($distrbtr)) {
+                $metadata['distributor'] = (string) $distrbtr[0];
+            }
+            $distDate = $distStmt[0]->xpath('.//*[local-name()="distDate"]');
+            if (!empty($distDate)) {
+                $metadata['date'] = (string) $distDate[0];
+            }
+        }
+
+        // Versão
+        $verStmt = $docNode->xpath('.//*[local-name()="verStmt"]');
+        if (!empty($verStmt)) {
+            $version = $verStmt[0]->xpath('.//*[local-name()="version"]');
+            if (!empty($version)) {
+                $metadata['version'] = (string) $version[0];
+            }
+        }
+
+        // Citação
+        $biblCit = $docNode->xpath('.//*[local-name()="biblCit"]');
+        if (!empty($biblCit)) {
+            $metadata['citation'] = (string) $biblCit[0];
+        }
+
+        return $metadata;
+    }
+
+    /**
+     * Parse de descrição do estudo (stdyDscr)
+     */
+    private function parseStdyDscr($ddiXml)
+    {
+        $study = [
+            'title' => '',
+            'authors' => [],
+            'abstract' => '',
+            'period' => '',
+            'time_period' => '',
+            'methods' => '',
+        ];
+
+        $stdyDscr = $ddiXml->xpath('//*[local-name()="stdyDscr"]');
+        if (empty($stdyDscr)) {
+            return $study;
+        }
+
+        $studyNode = $stdyDscr[0];
+
+        // Título do estudo
+        $titleNode = $studyNode->xpath('.//*[local-name()="titl"]');
+        if (!empty($titleNode)) {
+            $study['title'] = (string) $titleNode[0];
+        }
+
+        // Responsáveis/Autores
+        $rspStmt = $studyNode->xpath('.//*[local-name()="rspStmt"]');
+        if (!empty($rspStmt)) {
+            $authEnties = $rspStmt[0]->xpath('.//*[local-name()="AuthEnty"]');
+            foreach ($authEnties as $auth) {
+                $authAttrs = $auth->attributes();
+                $affiliation = (string) ($authAttrs['affiliation'] ?? 'N/A');
+                $study['authors'][] = [
+                    'name' => (string) $auth,
+                    'affiliation' => $affiliation,
+                ];
+            }
+        }
+
+        // Abstract
+        $abstract = $studyNode->xpath('.//*[local-name()="abstract"]');
+        if (!empty($abstract)) {
+            $study['abstract'] = (string) $abstract[0];
+        }
+
+        // Período de coleta
+        $timePrd = $studyNode->xpath('.//*[local-name()="timePrd"]');
+        if (!empty($timePrd)) {
+            $study['time_period'] = (string) $timePrd[0];
+        }
+
+        // Período de referência
+        $collPrd = $studyNode->xpath('.//*[local-name()="collPrd"]');
+        if (!empty($collPrd)) {
+            $attrs = $collPrd[0]->attributes();
+            if (isset($attrs['date'])) {
+                $study['period'] = (string) $attrs['date'];
+            } else {
+                $study['period'] = (string) $collPrd[0];
+            }
+        }
+
+        // Métodos
+        $method = $studyNode->xpath('.//*[local-name()="method"]');
+        if (!empty($method)) {
+            $methods = $method[0]->xpath('.//*[local-name()="dataColl"]');
+            if (!empty($methods)) {
+                $study['methods'] = (string) $methods[0];
+            }
+        }
+
+        return $study;
+    }
+
+    /**
      * Parse dos arquivos e variáveis do DDI
+     * As variáveis estão em dataDscr e são associadas aos arquivos via location fileid
      */
     private function parseDDIFiles($ddiXml)
     {
         $files = [];
         $fileNodes = $ddiXml->xpath('//*[local-name()="fileDscr"]') ?: [];
 
+        // Primeiro, extrair todos os arquivos
         foreach ($fileNodes as $fileNode) {
             $attrs = $fileNode->attributes();
             $fileId = (string) ($attrs['ID'] ?? $attrs['id'] ?? '');
@@ -120,70 +308,86 @@ class DDI extends Model
                 'type' => (string) ($fileTypeNode[0] ?? '-'),
                 'cases' => (string) ($caseCountNode[0] ?? '-'),
                 'vars' => (string) ($varCountNode[0] ?? '-'),
-                'variables' => $this->parseVariables($fileNode),
+                'variables' => [],
             ];
 
-            $files[] = $file;
+            $files[$fileId] = $file;
         }
 
-        return $files;
+        // Depois, extrair as variáveis de dataDscr e associá-las aos arquivos
+        $dataDescr = $ddiXml->xpath('//*[local-name()="dataDscr"]');
+        if (!empty($dataDescr)) {
+            $varNodes = $dataDescr[0]->xpath('.//*[local-name()="var"]') ?: [];
+
+            foreach ($varNodes as $varNode) {
+                $variable = $this->parseVariableNode($varNode);
+
+                // Encontrar o arquivo associado via location fileid
+                $locationNode = $varNode->xpath('.//*[local-name()="location"]');
+                if (!empty($locationNode)) {
+                    $locAttrs = $locationNode[0]->attributes();
+                    $fileId = (string) ($locAttrs['fileid'] ?? $locAttrs['ID'] ?? '');
+
+                    // Associar variável ao arquivo correto
+                    if ($fileId && isset($files[$fileId])) {
+                        $files[$fileId]['variables'][] = $variable;
+                    }
+                }
+            }
+        }
+
+        // Retornar como array indexado numericamente
+        return array_values($files);
     }
 
     /**
-     * Parse das variáveis de um arquivo DDI
+     * Parse de um nó de variável individual
      */
-    private function parseVariables($fileNode)
+    private function parseVariableNode($varNode)
     {
-        $variables = [];
-        $varNodes = $fileNode->xpath('.//*[local-name()="var"]') ?: [];
+        $attrs = $varNode->attributes();
+        $varId = (string) ($attrs['ID'] ?? $attrs['id'] ?? '');
+        $varName = (string) ($attrs['name'] ?? '');
 
-        foreach ($varNodes as $varNode) {
-            $attrs = $varNode->attributes();
-            $varId = (string) ($attrs['ID'] ?? $attrs['id'] ?? '');
-            $varName = (string) ($attrs['name'] ?? '');
+        $nameNode = $varNode->xpath('.//*[local-name()="labl"]');
+        $typeNode = $varNode->xpath('.//*[local-name()="varFormat"]');
+        $varTypeAttr = $typeNode[0]->attributes() ?? null;
+        $varType = isset($varTypeAttr['type']) ? (string) $varTypeAttr['type'] : 'character';
 
-            $nameNode = $varNode->xpath('.//*[local-name()="labl"]');
-            $typeNode = $varNode->xpath('.//*[local-name()="varFormat"]');
-            $varTypeAttr = $typeNode[0]->attributes() ?? null;
-            $varType = isset($varTypeAttr['type']) ? (string) $varTypeAttr['type'] : 'character';
-
-            // Obter localização das categorias de codificação
-            $catgryNodes = $varNode->xpath('.//*[local-name()="catgry"]') ?: [];
-            $categories = [];
-            foreach ($catgryNodes as $catgry) {
-                $catValNode = $catgry->xpath('.//*[local-name()="catValu"]');
-                $catTxtNode = $catgry->xpath('.//*[local-name()="labl"]');
-                if (!empty($catValNode) && !empty($catTxtNode)) {
-                    $categories[] = [
-                        'value' => (string) $catValNode[0],
-                        'label' => (string) $catTxtNode[0],
-                    ];
-                }
+        // Obter localização das categorias de codificação
+        $catgryNodes = $varNode->xpath('.//*[local-name()="catgry"]') ?: [];
+        $categories = [];
+        foreach ($catgryNodes as $catgry) {
+            $catValNode = $catgry->xpath('.//*[local-name()="catValu"]');
+            $catTxtNode = $catgry->xpath('.//*[local-name()="labl"]');
+            if (!empty($catValNode) && !empty($catTxtNode)) {
+                $categories[] = [
+                    'value' => (string) $catValNode[0],
+                    'label' => (string) $catTxtNode[0],
+                ];
             }
-
-            // Obter estatísticas simples
-            $summStatNode = $varNode->xpath('.//*[local-name()="sumStat"]');
-            $stats = [];
-            foreach ($summStatNode as $stat) {
-                $statAttr = $stat->attributes() ?? null;
-                if (isset($statAttr['type'])) {
-                    $statType = (string) $statAttr['type'];
-                    $statValue = (string) $stat;
-                    $stats[$statType] = $statValue;
-                }
-            }
-
-            $variables[] = [
-                'id' => $varId,
-                'name' => $varName,
-                'label' => (string) ($nameNode[0] ?? $varName),
-                'type' => $varType,
-                'categories' => $categories,
-                'stats' => $stats,
-            ];
         }
 
-        return $variables;
+        // Obter estatísticas simples
+        $summStatNode = $varNode->xpath('.//*[local-name()="sumStat"]');
+        $stats = [];
+        foreach ($summStatNode as $stat) {
+            $statAttr = $stat->attributes() ?? null;
+            if (isset($statAttr['type'])) {
+                $statType = (string) $statAttr['type'];
+                $statValue = (string) $stat;
+                $stats[$statType] = $statValue;
+            }
+        }
+
+        return [
+            'id' => $varId,
+            'name' => $varName,
+            'label' => (string) ($nameNode[0] ?? $varName),
+            'type' => $varType,
+            'categories' => $categories,
+            'stats' => $stats,
+        ];
     }
 
     function hichart_pie($div='grapho',$data=array())

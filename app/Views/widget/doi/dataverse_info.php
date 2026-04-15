@@ -38,8 +38,21 @@ if ($persistentId === '' && !empty($ds['authority']) && !empty($ds['identifier']
     $persistentId = 'doi:' . $ds['authority'] . '/' . $ds['identifier'];
 }
 
+// Processar dados DDI da variável $DDI (já vem do controller)
 $ddiFiles = [];
 $ddiError = '';
+$ddiUrl = $ddiUrl ?? '';
+
+if (!empty($DDI)) {
+    $DDIPreview = new \App\Models\Preview\DDI();
+    $ddiData = $DDIPreview->parseDDIXml($DDI, $ddiUrl);
+
+    if ($ddiData['success']) {
+        $ddiFiles = $ddiData['files'] ?? [];
+    } else {
+        $ddiError = $ddiData['error'] ?? 'Erro ao processar dados DDI';
+    }
+}
 ?>
 
 <div class="container my-4">
@@ -199,7 +212,9 @@ $ddiError = '';
         <div class="tab-pane fade" id="ddi">
             <?php echo view('render/ddi/ddi', [
                 'ddiFiles' => $ddiFiles,
-                'ddiError' => $ddiError
+                'ddiError' => $ddiError,
+                'ddiUrl' => $ddiUrl ?? '',
+                'DDI' => $DDI ?? null
             ]); ?>
         </div>
 
