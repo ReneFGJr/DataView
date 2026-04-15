@@ -40,6 +40,38 @@ class DDI extends Model
     protected $beforeDelete         = [];
     protected $afterDelete          = [];
 
+    public function  fetchFromDDI(string $url)
+    {
+        $DoiMetadataModel = new \App\Models\DoiMetadataModel();
+
+        // Decompor a URL e recompor com a API endpoint correto
+        $parsed = parse_url($url);
+        $scheme = $parsed['scheme'] ?? 'https';
+        $host = $parsed['host'] ?? '';
+        $query = $parsed['query'] ?? '';
+
+        // URL da API DDI
+        $apiUrl = $scheme . '://' . $host . '/api/datasets/export?exporter=ddi&' . $query;
+        //https://dataverse.ideal.ufpb.br/citation?persistentId=doi:10.71650/DATAPB/YTSI2O
+        //https://dataverse.ideal.ufpb.br/api/datasets/export?exporter=ddi&persistentId=doi:10.71650/DATAPB/YTSI2O
+
+        $DOI = substr($url, strpos($url, 'doi:') + 4);
+
+        $response = $DoiMetadataModel->httpGet($apiUrl);
+        if (!$response) {
+            return 'Erro ao acessar o Dataverse.';
+        }
+
+        // O endpoint DDI retorna XML, não JSON
+        libxml_use_internal_errors(true);
+        $xml = simplexml_load_string($response);
+
+        if ($xml === false) {
+            return 'Erro ao processar resposta DDI (XML inválido).';
+        }
+        return $xml;
+    }
+
     function index($d1,$d2)
         {
             $apikey = '';

@@ -42,23 +42,12 @@ $ddiUrl = '';
 $ddiFiles = [];
 $ddiError = '';
 
-if ($persistentId !== '') {
-    $ddiUrl = 'https://venus.brapci.inf.br/api/datasets/export?exporter=ddi&persistentId=' . rawurlencode($persistentId);
-    $ddiRaw = @file_get_contents(
-        $ddiUrl,
-        false,
-        stream_context_create([
-            'http' => [
-                'timeout' => 10,
-            ],
-        ])
-    );
 
-    if ($ddiRaw === false) {
-        $ddiError = 'Não foi possível obter os dados DDI neste momento.';
-    } else {
+if ($persistentId !== '') {
+    $DDIModel = new \App\Models\DDI();
+
         libxml_use_internal_errors(true);
-        $ddiXml = simplexml_load_string($ddiRaw);
+        $ddiXml = $DDIModel->fetchFromDDI($url);
 
         if ($ddiXml === false) {
             $ddiError = 'Resposta DDI inválida para este dataset.';
@@ -84,7 +73,6 @@ if ($persistentId !== '') {
             }
         }
     }
-}
 ?>
 
 <div class="container my-4">

@@ -8,6 +8,8 @@ class DoiMetadataModel
 {
     function  fetchFromDataverse(string $url): string
     {
+        $DoiMetadataModel = new \App\Models\DoiMetadataModel();
+        $DDI = new \App\Models\DDI();
         $apiUrl = str_replace(
             '/citation?persistentId=',
             '/api/datasets/:persistentId/?persistentId=',
@@ -16,13 +18,15 @@ class DoiMetadataModel
 
         $DOI = substr($url, strpos($url, 'doi:')+4);
 
-        $response = $this->httpGet($apiUrl);        
+        $DDIfile = $DDI->fetchFromDDI($url);
+
+        $response = $DoiMetadataModel->httpGet($apiUrl);
         if (!$response) {
             return 'Erro ao acessar o Dataverse.';
         }
 
         $data = json_decode($response, true); // ← transforma em ARRAY
-        
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             echo "Erro ao decodificar JSON: " . json_last_error_msg();
         }
@@ -31,6 +35,7 @@ class DoiMetadataModel
             'dataset' => $data['data'] ?? [],
             'url'     => $apiUrl,
             'DOI'     => $DOI ?? '',
+            'DDI'     => $DDIfile ?? ''
         ]);
     }
 
@@ -121,7 +126,7 @@ class DoiMetadataModel
     /**
      * 🌐 GET HTTP simples (cURL)
      */
-    private function httpGet(string $url): ?string
+    public function httpGet(string $url): ?string
     {
         $ch = curl_init($url);
 
